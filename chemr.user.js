@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name        Chemr
 // @namespace   http://lowreal.net/
-// @include     http://search.cpan.org/
-// @require     http://code.jquery.com/jquery-1.4.2.min.js
+// @include     http://search.cpan.org/*
+// @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     http://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
 // @require     http://svn.coderepos.org/share/lang/javascript/jsenumerator/trunk/jsenumerator.nodoc.js
 // @require     http://gist.github.com/3239.txt#createElementFromString
 // @require     http://gist.github.com/3238.txt#$X
+// @resource    search.cpan.org http://stfuawsc.com/refindex/search.cpan.org
 // ==/UserScript==
 
 (function () { with (D()) {
@@ -26,8 +27,9 @@
 
 	function Chemr () { this.init.apply(this, arguments) }
 	Chemr.prototype = {
-		init : function () {
+		init : function (domain) {
 			var self = this;
+			self.domain = domain;
 			self.createContainer();
 			self.bindEvents();
 			self.instantiateSearcher().next(function () {
@@ -45,7 +47,7 @@
 						<input type="text" name="input" class="input" placeholder="Input" autocomplete="off"/>\
 						<select class="select" size="30"></select>\
 					</div>\
-					<link rel="stylesheet" href="http://lab.lowreal.net/test/chemr.css" type="text/css" media="all" />\
+					<link rel="stylesheet" href="http://stfuawsc.com/refindex/chemr.css" type="text/css" media="all" />\
 				</div>\
 			');
 			document.body.appendChild(this.container);
@@ -126,9 +128,20 @@
 
 		instantiateSearcher : function () {
 			var self = this;
+			return self.instantiateSearcherFromResource();
+		},
+
+		instantiateSearcherFromHttp : function () {
+			var self = this;
 			return http.get('./keyword.dat').next(function (req) {
 				self.searcher = new Chemr.Searcher.Dat(req.responseText);
 			});
+		},
+
+		instantiateSearcherFromResource : function () {
+			var self = this;
+			self.searcher = new Chemr.Searcher.Dat(GM_getResourceText(self.domain));
+			return next();
 		},
 
 		setCandinate : function (list) {
@@ -136,11 +149,21 @@
 			var select = container.select;
 			while (select.firstChild) select.removeChild(select.firstChild);
 			for (var i = 0, len = list.length; i < len; i++) {
-				var key = list[i][0];
+				var item   = this.applyDomainFunction(list[i]);
+				var key    = item[0];
 				var option = document.createElement('option');
 				option.appendChild(document.createTextNode(key));
-				option.value = list[i][1];
+				option.value = item[1];
 				select.add(option, null);
+			}
+		},
+
+		applyDomainFunction : function (item) {
+			if (Chemr.DomainFunctions[this.domain]) {
+				Chemr.DomainFunctions[this.domain](item);
+				return item;
+			} else {
+				return item;
 			}
 		},
 
@@ -176,6 +199,11 @@
 				});
 
 			self.setCandinate(res);
+		}
+	};
+	Chemr.DomainFunctions = {
+		"search.cpan.org" : function (item) {
+			item[1] = "http://search.cpan.org/perldoc?" + encodeURIComponent(item[0]);
 		}
 	};
 
