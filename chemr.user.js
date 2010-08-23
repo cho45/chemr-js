@@ -38,6 +38,8 @@
 			error(function (e) {
 				alert(e);
 			});
+
+			self.applyDomainFunction('load');
 		},
 
 		createContainer : function () {
@@ -149,7 +151,7 @@
 			var select = container.select;
 			while (select.firstChild) select.removeChild(select.firstChild);
 			for (var i = 0, len = list.length; i < len; i++) {
-				var item   = this.applyDomainFunction(list[i]);
+				var item   = this.applyDomainFunction('item', list[i]);
 				var key    = item[0];
 				var option = document.createElement('option');
 				option.appendChild(document.createTextNode(key));
@@ -158,12 +160,12 @@
 			}
 		},
 
-		applyDomainFunction : function (item) {
-			if (Chemr.DomainFunctions[this.domain]) {
-				Chemr.DomainFunctions[this.domain](item);
-				return item;
+		applyDomainFunction : function (name, obj) {
+			var domainfunc = Chemr.DomainFunctions[this.domain];
+			if (domainfunc && domainfunc[name]) {
+				return Chemr.DomainFunctions[this.domain][name](obj);
 			} else {
-				return item;
+				return obj;
 			}
 		},
 
@@ -202,8 +204,15 @@
 		}
 	};
 	Chemr.DomainFunctions = {
-		"search.cpan.org" : function (item) {
-			item[1] = "http://search.cpan.org/perldoc?" + encodeURIComponent(item[0]);
+		"search.cpan.org" : {
+			item : function (item) {
+				item[1] = "http://search.cpan.org/perldoc?" + encodeURIComponent(item[0]);
+				return item;
+			}
+		},
+		"developer.android.com" : {
+			load : function () {
+			}
 		}
 	};
 
