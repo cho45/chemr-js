@@ -4,6 +4,7 @@
 // @include     http://search.cpan.org/*
 // @include     http://www2u.biglobe.ne.jp/*
 // @include     http://developer.android.com/*
+// @include     http://api.jquery.com/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     http://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
 // @require     http://svn.coderepos.org/share/lang/javascript/jsenumerator/trunk/jsenumerator.nodoc.js
@@ -270,6 +271,7 @@
 			return {
 				hasNext : true,
 				next : function () {
+					// by mala http://la.ma.la/blog/diary_200604021538.htm
 					var match = q.exec(self.dat);
 					if (!match) {
 						this.hasNext = false;
@@ -313,10 +315,34 @@
 		}
 	};
 
-	Chemr.DomainFunctions["developer.android.com"] = {
-		load : function () {
+	Chemr.DomainFunctions["api.jquery.com"] = {
+		indexer : function () {
+			var ret = new Deferred();
+			var iframe = document.createElement('iframe');
+			iframe.addEventListener("load", function () {
+				var document = iframe.contentDocument;
+				var anchors  = $X(".//a[@rel='bookmark']", document, Array);
+				var index    = new Array(anchors.length);
+				for (var i = 0, len = index.length; i < len; i++) {
+					var a    = anchors[i];
+					var name = $X(".", a, String);
+					var url  = a.href;
+					console.log([name, url]);
+					index.push(name + "\t" + url + "\n");
+				}
+				ret.call(index.join(""));
+			}, false);
+			iframe.src = "http://api.jquery.com/?" + Math.random();
+			document.body.appendChild(iframe);
+			return ret;
 		}
 	};
+
+// TODO
+//	Chemr.DomainFunctions["developer.android.com"] = {
+//		load : function () {
+//		}
+//	};
 
 	Chemr.DomainFunctions["www2u.biglobe.ne.jp"] = { // Under Translation of ECMA-262 3rd Edition
 		indexer : function () {
