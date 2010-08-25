@@ -246,12 +246,13 @@
 	Chemr.Indexer = function () { this.init.apply(this, arguments) };
 	Chemr.Indexer.prototype = {
 		init : function (domain) {
-			this.domain    = this.domain;
+			this.domain    = domain;
 			this.functions = Chemr.DomainFunctions[this.domain];
 		},
 
 		index : function () {
 			var self = this;
+			if (!this.functions.indexer) throw "indexer not defined";
 			return next(this.functions.indexer);
 		}
 	};
@@ -291,6 +292,21 @@
 
 	Chemr.DomainFunctions = { };
 	Chemr.DomainFunctions["search.cpan.org"] = {
+		indexer : function () {
+			console.log('retrieve package detail');
+			return xhttp.get('http://www.cpan.org/modules/02packages.details.txt').
+			next(function (req) {
+				console.log('loaded');
+				var reg = /^([a-z0-9:_]*?[a-z0-9_])\s+/img;
+				var str = req.responseText;
+				var index = "";
+				while (reg.exec(str)) {
+					index += RegExp.$1 + "\t\n";
+				}
+				return index;
+			});
+		},
+
 		item : function (item) {
 			item[1] = "http://search.cpan.org/perldoc?" + encodeURIComponent(item[0]);
 			return item;
