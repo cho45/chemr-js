@@ -2,15 +2,38 @@
 // @name        Chemr
 // @namespace   http://lowreal.net/
 // @include     http://search.cpan.org/*
+// @include     http://www2u.biglobe.ne.jp/*
+// @include     http://developer.android.com/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     http://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
 // @require     http://svn.coderepos.org/share/lang/javascript/jsenumerator/trunk/jsenumerator.nodoc.js
 // @require     http://gist.github.com/3239.txt#createElementFromString
 // @require     http://gist.github.com/3238.txt#$X
-// @resource    search.cpan.org http://stfuawsc.com/refindex/search.cpan.org
 // ==/UserScript==
 
 (function () { with (D()) {
+	http = function (opts) {
+		var d = Deferred();
+		var req = new XMLHttpRequest();
+		req.overrideMimeType("text/plain; charset=" + document.characterSet);
+		req.open(opts.method, opts.url, true);
+		if (opts.headers) {
+			for (var k in opts.headers) if (opts.headers.hasOwnProperty(k)) {
+				req.setRequestHeader(k, opts.headers[k]);
+			}
+		}
+		req.onreadystatechange = function () {
+			if (req.readyState == 4) d.call(req);
+		};
+		req.send(opts.data || null);
+		d.xhr = req;
+		return d;
+	}
+	http.get   = function (url)       { return http({method:"get",  url:url}) };
+	http.post  = function (url, data) { return http({method:"post", url:url, data:data, headers:{"Content-Type":"application/x-www-form-urlencoded"}}) };
+
+	if (window != window.parent) return;
+
 	function keyString (e) {
 		var ret = '';
 		if (e.ctrlKey) ret += 'C-';
@@ -86,6 +109,13 @@
 					document.body.removeChild(container);
 					document.body.innerHTML = res.responseText;
 					document.body.appendChild(container);
+					var fragment = url.match(/#(.+)$/);
+					if (fragment) {
+						var target = document.getElementById(fragment[1]);
+						window.scrollTo(0, $(target).offset().top);
+					} else {
+						window.scrollTo(0, 0);
+					}
 				}).
 				error(function (e) {
 					alert(e);
@@ -122,7 +152,7 @@
 						self.search(input);
 						prev = input;
 					}
-				}, 200);
+				}, 50);
 				return true;
 			});
 
@@ -130,7 +160,7 @@
 
 		instantiateSearcher : function () {
 			var self = this;
-			return self.instantiateSearcherFromResource();
+			return self.instantiateSearcherFromLocalStorage();
 		},
 
 		instantiateSearcherFromHttp : function () {
@@ -140,10 +170,19 @@
 			});
 		},
 
-		instantiateSearcherFromResource : function () {
+		instantiateSearcherFromLocalStorage : function () {
 			var self = this;
-			self.searcher = new Chemr.Searcher.Dat(GM_getResourceText(self.domain));
-			return next();
+			var data = localStorage.getItem('refindex');
+			if (data) {
+				self.searcher = new Chemr.Searcher.Dat(data);
+				return next();
+			} else {
+				var indexer = new Chemr.Indexer(self.domain);
+				return indexer.index().next(function (data) {
+					localStorage.setItem('refindex', data);
+					self.searcher = new Chemr.Searcher.Dat(data);
+				});
+			}
 		},
 
 		setCandinate : function (list) {
@@ -203,16 +242,17 @@
 			self.setCandinate(res);
 		}
 	};
-	Chemr.DomainFunctions = {
-		"search.cpan.org" : {
-			item : function (item) {
-				item[1] = "http://search.cpan.org/perldoc?" + encodeURIComponent(item[0]);
-				return item;
-			}
+
+	Chemr.Indexer = function () { this.init.apply(this, arguments) };
+	Chemr.Indexer.prototype = {
+		init : function (domain) {
+			this.domain    = this.domain;
+			this.functions = Chemr.DomainFunctions[this.domain];
 		},
-		"developer.android.com" : {
-			load : function () {
-			}
+
+		index : function () {
+			var self = this;
+			return next(this.functions.indexer);
 		}
 	};
 
@@ -246,6 +286,41 @@
 					}
 				}
 			};
+		}
+	};
+
+	Chemr.DomainFunctions = { };
+	Chemr.DomainFunctions["search.cpan.org"] = {
+		item : function (item) {
+			item[1] = "http://search.cpan.org/perldoc?" + encodeURIComponent(item[0]);
+			return item;
+		}
+	};
+
+	Chemr.DomainFunctions["developer.android.com"] = {
+		load : function () {
+		}
+	};
+
+	Chemr.DomainFunctions["www2u.biglobe.ne.jp"] = { // Under Translation of ECMA-262 3rd Edition
+		indexer : function () {
+			var ret = new Deferred();
+			var iframe = document.createElement('iframe');
+			iframe.addEventListener("load", function () {
+				var document = iframe.contentDocument;
+				var anchors  = $X(".//dt/a", document, Array);
+				var index    = new Array(anchors.length);
+				for (var i = 0, len = index.length; i < len; i++) {
+					var a    = anchors[i];
+					var name = $X(".", a, String).replace(/^[\d\s.]*/, "");
+					var url  = a.href;
+					index.push(name + "\t" + url + "\n");
+				}
+				ret.call(index.join(""));
+			}, false);
+			iframe.src = "http://www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/fulltoc.html";
+			document.body.appendChild(iframe);
+			return ret;
 		}
 	};
 
