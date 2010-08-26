@@ -189,8 +189,7 @@
 				var option = container.select.childNodes[container.select.selectedIndex];
 				if (!option) return;
 				var url  = option.value;
-				var name = option.text;
-				document.title = name;
+				document.title = option.title;
 				Chemr.log("loading...", { wait: 1 });
 				http.get(url).next(function (res) {
 					Chemr.log("done", { wait : 1 });
@@ -292,6 +291,7 @@
 				var option = document.createElement('option');
 				option.innerHTML = item[2];
 				option.value     = item[1];
+				option.title     = item[0];
 				select.add(option, null);
 			}
 		},
