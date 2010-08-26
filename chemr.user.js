@@ -101,7 +101,6 @@
 							top: 10px;
 							right: 10px;
 							width: 300px;
-							opacity: 0.9;
 							margin: 0;
 							padding: 0;
 						}
@@ -110,7 +109,7 @@
 							-moz-box-sizing: border-box;
 							box-sizing: border-box;
 							margin: 0;
-							padding: 0;
+							padding: 1px;
 							width: 100%;
 							font-size: 13px !important;
 						}
@@ -119,6 +118,13 @@
 							width: 100%;
 							box-sizing: content-box;
 							font-size: 13px !important;
+						}
+
+						#chemr-container .search .select option {
+							padding: 3px;
+						}
+						#chemr-container .search .select option:nth-child(odd) {
+							background: #e9e9e9;
 						}
 
 						#chemr-container .notifications {
