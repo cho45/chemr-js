@@ -200,7 +200,9 @@
 
 					var fragment = url.match(/#(.+)$/);
 					if (fragment) {
-						var target = document.getElementById(fragment[1]);
+						fragment = decodeURIComponent(fragment[1]);
+						var target = document.getElementById(fragment);
+						if (!target) target = document.querySelector('a[name="' + fragment + '"]');
 						window.scrollTo(0, $(target).offset().top);
 					} else {
 						window.scrollTo(0, 0);
