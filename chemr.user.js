@@ -79,8 +79,6 @@
 				alert(e);
 			});
 
-			self.applyDomainFunction('load');
-
 			Chemr.instance = self;
 			Chemr.log();
 		},
@@ -193,6 +191,8 @@
 					document.body.removeChild(container);
 					document.body.innerHTML = res.responseText;
 					document.body.appendChild(container);
+					self.applyDomainFunction('load');
+
 					var fragment = url.match(/#(.+)$/);
 					if (fragment) {
 						var target = document.getElementById(fragment[1]);
@@ -553,6 +553,44 @@
 				}
 			}
 			return null;
+		},
+
+		load : function () {
+			var style = document.createElement('style');
+			style.type = "text/css";
+			style.appendChild(document.createTextNode(<><![CDATA[
+				#header {
+					height: auto;
+					border: none;
+					min-width: auto;
+				}
+
+				#headerLeft,
+				#headerLinks,
+				#search,
+				#side-nav {
+					display: none;
+				}
+
+				#body-content {
+					position: static;
+				}
+
+				#doc-content {
+					overflow: show;
+					width: auto;
+					margin: 0;
+				}
+
+				html {
+					overflow: auto;
+				}
+
+				body {
+					overflow: show;
+				}
+			]]></>));
+			document.body.appendChild(style);
 		}
 	};
 
