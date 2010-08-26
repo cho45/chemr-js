@@ -99,6 +99,7 @@
 						
 						#chemr-container .search {
 							position: fixed;
+							z-index: 10000;
 							top: 10px;
 							right: 10px;
 							width: 300px;
@@ -128,7 +129,7 @@
 							left: 0;
 							font-family: "Trebuchet MS", "Verdana", "Helvetica", "Arial" ,sans-serif;
 							font-size: 12px;
-							z-index: 1000;
+							z-index: 10000;
 							width: 50%;
 							padding: 0.5em 1em;
 							background: #000;
@@ -373,10 +374,10 @@
 			return next(function () {
 				return self.crawlTarget.length ? self.fetch(function (src, doc) {
 					self.functions.indexer.call(self, src, doc);
-				}) : null;
+				}).next(arguments.callee) : null;
 			}).
 			next(function () {
-				self.indexArray.sort();
+				// self.indexArray.sort();
 				return self.indexArray.join("\n");
 			});
 		},
@@ -392,17 +393,28 @@
 		fetch : function (callback) {
 			var self = this;
 			var d = new Deferred();
+			var url = this.crawlTarget.shift();
 			var iframe = document.createElement('iframe');
 			iframe.setAttribute('style', 'position:absolute;top:0;left:0;z-index:0;');
-			iframe.addEventListener("load", function () {
+			iframe.style.display = "none";
+			document.body.appendChild(iframe);
+			iframe.contentWindow.addEventListener("DOMContentLoaded", function () {
+				var document = iframe.contentDocument;
+				var links = document.querySelectorAll('img, script');
+				for (var i = 0, len = links.length; i < len; i++) {
+					var e = links[i];
+					e.setAttribute('_src', e.getAttribute('src'));
+					e.removeAttribute('src');
+				}
+
 				try {
-					callback.call(self, iframe.src, iframe.contentDocument);
-				} catch (e) { d.fail(e) }
+					callback.call(self, url, document);
+				} catch (e) { d.fail([url, e]) }
 				iframe.parentNode.removeChild(iframe);
 				d.call();
 			}, false);
-			iframe.src = this.crawlTarget.pop() + "?" + Math.random();
-			document.body.appendChild(iframe);
+			iframe.src = url + "?" + Math.random();
+			Chemr.log('fetch ' + url);
 			return d;
 		}
 	};
@@ -469,7 +481,7 @@
 
 	Chemr.DomainFunctions["api.jquery.com"] = {
 		indexer : function (page, document) {
-			if (!page) this.pushPage("http://api.jquery.com/");
+			if (!page) return this.pushPage("http://api.jquery.com/");
 			var anchors  = $X(".//a[@rel='bookmark']", document, Array);
 			var index    = new Array(anchors.length);
 			for (var i = 0, len = index.length; i < len; i++) {
@@ -478,12 +490,13 @@
 				var url  = a.href;
 				this.pushIndex(name + "\t" + url);
 			}
+			return null;
 		}
 	};
 
 	Chemr.DomainFunctions["www.ruby-lang.org"] = {
 		indexer : function (page, document) {
-			if (!page) this.pushPage('http://www.ruby-lang.org/ja/man/html/methodlist.html?');
+			if (!page) return this.pushPage('http://www.ruby-lang.org/ja/man/html/methodlist.html?');
 			var list     = $X(".//body/ul/li", document, Array);
 			var index    = new Array(list.length);
 			for (var i = 0, len = index.length; i < len; i++) {
@@ -497,24 +510,9 @@
 					this.pushIndex(dd + "." + dt + "\t" + url);
 				}
 			}
+			return null;
 		}
 	};
-
-// TODO
-//	Chemr.DomainFunctions["developer.android.com"] = {
-//	};
-//	Chemr.DomainFunctions["dev.mysql.com"] = {
-//	};
-//	Chemr.DomainFunctions["practical-scheme.net"] = {
-//	};
-//	Chemr.DomainFunctions["docs.python.org"] = {
-//	};
-//	Chemr.DomainFunctions["www.w3.org/TR/css3-roadmap/"] = {
-//	};
-//	Chemr.DomainFunctions["www.haskell.org"] = {
-//	};
-//	Chemr.DomainFunctions["livedocs.adobe.com/flash/9.0_jp/ActionScriptLangRefV3/"] = {
-//	};
 
 	Chemr.DomainFunctions["www2u.biglobe.ne.jp"] = { // Under Translation of ECMA-262 3rd Edition
 		indexer : function (page, document) {
@@ -529,6 +527,48 @@
 			}
 		}
 	};
+
+	Chemr.DomainFunctions["developer.android.com"] = {
+		indexer : function (page, document) {
+			if (!page) {
+				this.pages = {};
+				return this.pushPage('http://developer.android.com/reference/classes.html');
+			}
+			if (page == 'http://developer.android.com/reference/classes.html') {
+				var list     = document.querySelectorAll('tr.api');
+				for (var i = 0, len = list.length; i < len; i++) {
+					var api = list[i];
+					var a   = api.querySelector('td.jd-linkcol a');
+					var t   = $X('.', a, String);
+					this.pages[a.href] = t;
+					this.pushPage(a.href);
+					this.pushIndex(t + "\t" + a);
+				}
+			} else {
+				var methods = document.querySelectorAll('#pubctors, #pubmethods, #promethods');
+				for (var i = 0, len = methods.length; i < len; i++) {
+					var a = methods[i].querySelector('tr.api td.jd-linkcol a');
+					var t = $X('.', a, String);
+					this.pushIndex(this.pages[page] + "." + t + "\t" + a);
+				}
+			}
+			return null;
+		}
+	};
+
+// TODO
+//	Chemr.DomainFunctions["dev.mysql.com"] = {
+//	};
+//	Chemr.DomainFunctions["practical-scheme.net"] = {
+//	};
+//	Chemr.DomainFunctions["docs.python.org"] = {
+//	};
+//	Chemr.DomainFunctions["www.w3.org/TR/css3-roadmap/"] = {
+//	};
+//	Chemr.DomainFunctions["www.haskell.org"] = {
+//	};
+//	Chemr.DomainFunctions["livedocs.adobe.com/flash/9.0_jp/ActionScriptLangRefV3/"] = {
+//	};
 
 	try {
 		var domain = location.hostname;

@@ -11,6 +11,8 @@ Current Support:
  * http://search.cpan.org/
  * http://www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/
  * http://api.jquery.com/
+ * http://www.ruby-lang.org/
+ * http://developer.android.com/
 
 ## Key Binding ##
 
