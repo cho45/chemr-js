@@ -312,7 +312,7 @@
 			// scoring and sort
 			var regex = new RegExp('(' + query.split('').map(function (c) {
 				return c.replace(/\W/g,'\\$&');
-			}).join(').*?(') + ')', 'ig');
+			}).join(').*?(') + ')', 'i');
 
 			res = res.
 				map(function (i) {
