@@ -573,9 +573,12 @@
 			} else {
 				var methods = document.querySelectorAll('#pubctors, #pubmethods, #promethods');
 				for (var i = 0, len = methods.length; i < len; i++) {
-					var a = methods[i].querySelector('tr.api td.jd-linkcol a');
-					var t = $X('.', a, String);
-					this.pushIndex(this.pages[page] + "." + t + "\t" + a);
+					var as = methods[i].querySelectorAll('tr.api td.jd-linkcol a');
+					for (var i = 0, len = as.length; i < len; i++) {
+						var a = as[i];
+						var t = $X('.', a, String);
+						this.pushIndex(this.pages[page] + "." + t + "\t" + a);
+					}
 				}
 			}
 			return null;
