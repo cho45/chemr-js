@@ -171,7 +171,7 @@
 					'TAB' : function () {
 						var option = container.select.childNodes[container.select.selectedIndex + 1];
 						if (option) {
-							container.input.value = option.firstChild.nodeValue;
+							container.input.value = option.title;
 						}
 					},
 					'ESC' : function () {
