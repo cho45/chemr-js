@@ -246,6 +246,10 @@
 				return true;
 			});
 
+			$(container).click(function (e) {
+				e.stopPropagation();
+			});
+
 			$(document.body).click(function () {
 				$(container).toggle('fast');
 			});
