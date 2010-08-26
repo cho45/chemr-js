@@ -357,14 +357,53 @@
 	Chemr.Indexer = function () { this.init.apply(this, arguments) };
 	Chemr.Indexer.prototype = {
 		init : function (domain) {
-			this.domain    = domain;
-			this.functions = Chemr.DomainFunctions[this.domain];
+			this.domain      = domain;
+			this.functions   = Chemr.DomainFunctions[this.domain];
+			this.crawlTarget = [];
+			this.indexArray  = [];
 		},
 
 		index : function () {
 			var self = this;
 			if (!this.functions.indexer) throw "indexer not defined";
-			return next(this.functions.indexer);
+
+			var ret = self.functions.indexer.call(self);
+			if (ret) return ret;
+
+			return next(function () {
+				return self.crawlTarget.length ? self.fetch(function (src, doc) {
+					self.functions.indexer.call(self, src, doc);
+				}) : null;
+			}).
+			next(function () {
+				self.indexArray.sort();
+				return self.indexArray.join("\n");
+			});
+		},
+
+		pushIndex : function (index) {
+			this.indexArray.push(index);
+		},
+
+		pushPage : function (url) {
+			this.crawlTarget.push(url);
+		},
+
+		fetch : function (callback) {
+			var self = this;
+			var d = new Deferred();
+			var iframe = document.createElement('iframe');
+			iframe.setAttribute('style', 'position:absolute;top:0;left:0;z-index:0;');
+			iframe.addEventListener("load", function () {
+				try {
+					callback.call(self, iframe.src, iframe.contentDocument);
+				} catch (e) { d.fail(e) }
+				iframe.parentNode.removeChild(iframe);
+				d.call();
+			}, false);
+			iframe.src = this.crawlTarget.pop() + "?" + Math.random();
+			document.body.appendChild(iframe);
+			return d;
 		}
 	};
 
@@ -405,10 +444,13 @@
 	Chemr.DomainFunctions = { };
 	Chemr.DomainFunctions["search.cpan.org"] = {
 		indexer : function () {
-			Chemr.log('retrieve http://www.cpan.org/modules/02packages.details.txt');
+			Chemr.log('fetch http://www.cpan.org/modules/02packages.details.txt');
 			return xhttp.get('http://www.cpan.org/modules/02packages.details.txt').
 			next(function (req) {
 				Chemr.log('loaded, creating index...');
+				return req;
+			}).
+			next(function (req) {
 				var reg = /^([a-z0-9:_]*?[a-z0-9_])\s+/img;
 				var str = req.responseText;
 				var index = "";
@@ -426,59 +468,35 @@
 	};
 
 	Chemr.DomainFunctions["api.jquery.com"] = {
-		indexer : function () {
-			var ret = new Deferred();
-			Chemr.log('Loading http://api.jquery.com/ ...');
-			var iframe = document.createElement('iframe');
-			iframe.setAttribute('style', 'position:absolute;top:0;left:0;z-index:0;');
-			iframe.addEventListener("load", function () {
-				Chemr.log('Loaded');
-				var document = iframe.contentDocument;
-				var anchors  = $X(".//a[@rel='bookmark']", document, Array);
-				var index    = new Array(anchors.length);
-				for (var i = 0, len = index.length; i < len; i++) {
-					var a    = anchors[i];
-					var name = $X(".", a, String);
-					var url  = a.href;
-					index.push(name + "\t" + url + "\n");
-				}
-				iframe.parentNode.removeChild(iframe);
-				ret.call(index.join(""));
-			}, false);
-			iframe.src = "http://api.jquery.com/?" + Math.random();
-			document.body.appendChild(iframe);
-			return ret;
+		indexer : function (page, document) {
+			if (!page) this.pushPage("http://api.jquery.com/");
+			var anchors  = $X(".//a[@rel='bookmark']", document, Array);
+			var index    = new Array(anchors.length);
+			for (var i = 0, len = index.length; i < len; i++) {
+				var a    = anchors[i];
+				var name = $X(".", a, String);
+				var url  = a.href;
+				this.pushIndex(name + "\t" + url);
+			}
 		}
 	};
 
 	Chemr.DomainFunctions["www.ruby-lang.org"] = {
-		indexer : function () {
-			var ret = new Deferred();
-			Chemr.log('Loading methodlist ...');
-			var iframe = document.createElement('iframe');
-			iframe.setAttribute('style', 'position:absolute;top:0;left:0;z-index:0;');
-			iframe.addEventListener("load", function () {
-				Chemr.log('Loaded');
-				var document = iframe.contentDocument;
-				var list     = $X(".//body/ul/li", document, Array);
-				var index    = new Array(list.length);
-				for (var i = 0, len = index.length; i < len; i++) {
-					var li = list[i];
-					var dt = $X("./text()", li, String).replace(/\s/g, '');
-					var as = $X("./ul/li/a", li, Array);
-					for (var j = 0, jlen = as.length; j < jlen; j++) {
-						var a   = as[j];
-						var dd  = $X(".", a, String).replace(/\s/g, '');
-						var url = a.href;
-						index.push(dd + "." + dt + "\t" + url + "\n");
-					}
+		indexer : function (page, document) {
+			if (!page) this.pushPage('http://www.ruby-lang.org/ja/man/html/methodlist.html?');
+			var list     = $X(".//body/ul/li", document, Array);
+			var index    = new Array(list.length);
+			for (var i = 0, len = index.length; i < len; i++) {
+				var li = list[i];
+				var dt = $X("./text()", li, String).replace(/\s/g, '');
+				var as = $X("./ul/li/a", li, Array);
+				for (var j = 0, jlen = as.length; j < jlen; j++) {
+					var a   = as[j];
+					var dd  = $X(".", a, String).replace(/\s/g, '');
+					var url = a.href;
+					this.pushIndex(dd + "." + dt + "\t" + url);
 				}
-				iframe.parentNode.removeChild(iframe);
-				ret.call(index.sort().join(""));
-			}, false);
-			iframe.src = "http://www.ruby-lang.org/ja/man/html/methodlist.html?" + Math.random();
-			document.body.appendChild(iframe);
-			return ret;
+			}
 		}
 	};
 
@@ -499,26 +517,16 @@
 //	};
 
 	Chemr.DomainFunctions["www2u.biglobe.ne.jp"] = { // Under Translation of ECMA-262 3rd Edition
-		indexer : function () {
-			var ret = new Deferred();
-			var iframe = document.createElement('iframe');
-			iframe.setAttribute('style', 'position:absolute;top:0;left:0;z-index:0;');
-			iframe.addEventListener("load", function () {
-				var document = iframe.contentDocument;
-				var anchors  = $X(".//dt/a", document, Array);
-				var index    = new Array(anchors.length);
-				for (var i = 0, len = index.length; i < len; i++) {
-					var a    = anchors[i];
-					var name = $X(".", a, String).replace(/^[\d\s.]*/, "");
-					var url  = a.href;
-					index.push(name + "\t" + url + "\n");
-				}
-				iframe.parentNode.removeChild(iframe);
-				ret.call(index.join(""));
-			}, false);
-			iframe.src = "http://www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/fulltoc.html";
-			document.body.appendChild(iframe);
-			return ret;
+		indexer : function (page, document) {
+			if (!page) this.pushPage("http://www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/fulltoc.html");
+			var anchors  = $X(".//dt/a", document, Array);
+			var index    = new Array(anchors.length);
+			for (var i = 0, len = index.length; i < len; i++) {
+				var a    = anchors[i];
+				var name = $X(".", a, String).replace(/^[\d\s.]*/, "");
+				var url  = a.href;
+				this.pushIndex(name + "\t" + url);
+			}
 		}
 	};
 
