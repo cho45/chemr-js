@@ -557,7 +557,6 @@
 	Chemr.DomainFunctions["developer.android.com"] = {
 		indexer : function (page, document) {
 			if (!page) {
-				this.pages = {};
 				return this.pushPage('http://developer.android.com/reference/classes.html');
 			}
 			if (page == 'http://developer.android.com/reference/classes.html') {
@@ -566,19 +565,16 @@
 					var api = list[i];
 					var a   = api.querySelector('td.jd-linkcol a');
 					var t   = $X('.', a, String);
-					this.pages[a.href] = t;
 					this.pushPage(a.href);
 					this.pushIndex(t + "\t" + a);
 				}
 			} else {
-				var methods = document.querySelectorAll('#pubctors, #pubmethods, #promethods');
-				for (var i = 0, len = methods.length; i < len; i++) {
-					var as = methods[i].querySelectorAll('tr.api td.jd-linkcol a');
-					for (var i = 0, len = as.length; i < len; i++) {
-						var a = as[i];
-						var t = $X('.', a, String);
-						this.pushIndex(this.pages[page] + "." + t + "\t" + a);
-					}
+				var title   = $X('//h1', document, String);
+				var anchors = document.anchors;
+				for (var i = 0, len = anchors.length; i < len; i++) {
+					var name = anchors[i].name;
+					if (name == 'navbar_top') continue;
+					this.pushIndex(title + "." + name + "\t" + page + "#" + encodeURIComponent(name));
 				}
 			}
 			return null;
