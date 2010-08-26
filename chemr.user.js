@@ -289,10 +289,9 @@
 			while (select.firstChild) select.removeChild(select.firstChild);
 			for (var i = 0, len = list.length; i < len; i++) {
 				var item   = this.applyDomainFunction('item', list[i]);
-				var key    = item[0];
 				var option = document.createElement('option');
-				option.appendChild(document.createTextNode(key));
-				option.value = item[1];
+				option.innerHTML = item[2];
+				option.value     = item[1];
 				select.add(option, null);
 			}
 		},
@@ -322,9 +321,24 @@
 
 			res = res.
 				map(function (i) {
-					var match = regex.exec(i[0]);
+					var str   = i[0];
+					var match = regex.exec(str);
 					if (match) {
-						var score = Math.abs(i[0].length - (match.length - 1));
+						var score = Math.abs(str.length - (match.length - 1));
+
+						match.shift();
+						var t = "";
+						for (var j = 0, m = match.shift(), len = str.length; j < len; j++) {
+							if (str[j] == m) {
+								t += '<b>' + escapeHTML(str[j]) + '</b>';
+								m = match.shift();
+							} else {
+								t += escapeHTML(str[j]);
+							}
+						}
+						t += escapeHTML(str.slice(j));
+						i[2] = t;
+
 						return [i, score];
 					} else {
 						return [i, Number.MAX_VALUE];
@@ -623,6 +637,10 @@
 		localStorage.removeItem('refindex');
 		location.reload();
 	});
+}
+
+function escapeHTML (t) {
+	return t.replace(/[&<>]/g, function (_) { return {'&':'&amp;','<':'&lt;','>':'&gt;'}[_] });
 }
 
 })();
