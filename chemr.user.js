@@ -5,6 +5,7 @@
 // @include     http://www2u.biglobe.ne.jp/*
 // @include     http://developer.android.com/*
 // @include     http://api.jquery.com/*
+// @include     http://www.ruby-lang.org/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     http://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
 // @require     http://svn.coderepos.org/share/lang/javascript/jsenumerator/trunk/jsenumerator.nodoc.js
@@ -49,55 +50,134 @@
 	keyString.table1 = { 9 : "TAB", 27 : "ESC", 33 : "PageUp", 34 : "PageDown", 35 : "End", 36 : "Home", 37 : "Left", 38 : "Up", 39 : "Right", 40 : "Down", 45 : "Insert", 46 : "Delete", 112 : "F1", 113 : "F2", 114 : "F3", 115 : "F4", 116 : "F5", 117 : "F6", 118 : "F7", 119 : "F8", 120 : "F9", 121 : "F10", 122 : "F11", 123 : "F12" };
 	keyString.table2 = { 8 : "BS", 13 : "RET", 32 : "SPC" };
 
-	function Chemr () { this.init.apply(this, arguments) }
+	function Chemr () { return Chemr.instance || this.init.apply(this, arguments) }
+	Chemr.log = function () {
+		var chemr = Chemr.instance;
+		if (chemr) {
+			for (var i = 0, len = Chemr.log.log.length; i < len; i++) {
+				chemr.notify.apply(chemr, Chemr.log.log[i]);
+			}
+			Chemr.log.log = [];
+			if (arguments.length) chemr.notify.apply(chemr, arguments);
+		} else {
+			Chemr.log.log.push(Array.prototype.slice.call(arguments, 0));
+		}
+	};
+	Chemr.log.log = [];
 	Chemr.prototype = {
 		init : function (domain) {
 			var self = this;
 			self.domain = domain;
 			self.createContainer();
+			Chemr.log("initializing Chemr...");
 			self.bindEvents();
 			self.instantiateSearcher().next(function () {
 				self.search("");
+				Chemr.log("initialized.");
 			}).
 			error(function (e) {
 				alert(e);
 			});
 
 			self.applyDomainFunction('load');
+
+			Chemr.instance = self;
+			Chemr.log();
 		},
 
 		createContainer : function () {
-			this.container = createElementFromString('\
-				<div id="chemr-container">\
-					<div class="search">\
-						<input type="text" name="input" class="input" placeholder="Input" autocomplete="off"/>\
-						<select class="select" size="30"></select>\
-					</div>\
-					<link rel="stylesheet" href="http://stfuawsc.com/refindex/chemr.css" type="text/css" media="all" />\
-				</div>\
-			');
+			this.container = createElementFromString(<><![CDATA[
+				<div id="chemr-container">
+					<div class="search">
+						<input type="text" name="input" class="input" placeholder="Input" autocomplete="off"/>
+						<select class="select" size="30"></select>
+					</div>
+					<div class="notifications"></div>
+					<style type="text/css">
+						#chemr-container {
+						}
+						
+						#chemr-container .search {
+							position: fixed;
+							top: 10px;
+							right: 10px;
+							width: 300px;
+							opacity: 0.9;
+							margin: 0;
+							padding: 0;
+						}
+						
+						#chemr-container .search .input {
+							-moz-box-sizing: border-box;
+							box-sizing: border-box;
+							margin: 0;
+							padding: 0;
+							width: 100%;
+							font-size: 13px !important;
+						}
+						
+						#chemr-container .search .select {
+							width: 100%;
+							box-sizing: content-box;
+							font-size: 13px !important;
+						}
+
+						#chemr-container .notifications {
+							position: fixed;
+							top: 0;
+							left: 0;
+							font-family: "Trebuchet MS", "Verdana", "Helvetica", "Arial" ,sans-serif;
+							font-size: 12px;
+							z-index: 1000;
+							width: 50%;
+							padding: 0.5em 1em;
+							background: #000;
+							color: #fff;
+							opacity: 0.8;
+						}
+					</style>
+				</div>
+			]]></>.toString());
 			document.body.appendChild(this.container);
 		},
 
 		bindEvents : function () {
 			var self = this;
 			var container = self.container;
-			$(document).keyup(function (e) {
+			$(document).keypress(function (e) {
 				var key = keyString(e);
 				var handler = {
-					'C-L' : function () {
+					'C-l' : function () {
 						container.input.focus();
 					},
-					'C-N' : function () {
+					'C-n' : function () {
 						var option = container.select.childNodes[container.select.selectedIndex + 1];
 						if (option) option.selected = true;
 						$(container.select).change();
 					},
-					'C-U' : function () {
+					'C-p' : function () {
+						var option = container.select.childNodes[container.select.selectedIndex - 1];
+						if (option) option.selected = true;
+						$(container.select).change();
+					},
+					'C-u' : function () {
 						container.input.value = '';
+					},
+					'TAB' : function () {
+						var option = container.select.childNodes[container.select.selectedIndex + 1];
+						if (option) {
+							container.input.value = option.firstChild.nodeValue;
+						}
+					},
+					'ESC' : function () {
+						$(container).hide('fast');
 					}
 				}[key];
-				if (handler) handler();
+				if (handler) {
+					handler();
+					return false;
+				}
+				return true;
 			});
 
 			$(container.select).change(function (e) {
@@ -106,7 +186,9 @@
 				var url  = option.value;
 				var name = option.text;
 				document.title = name;
+				Chemr.log("loading...", { wait: 1 });
 				http.get(url).next(function (res) {
+					Chemr.log("done", { wait : 1 });
 					document.body.removeChild(container);
 					document.body.innerHTML = res.responseText;
 					document.body.appendChild(container);
@@ -128,9 +210,10 @@
 				if (e.which == 108 && (e.metaKey || e.ctrlKey)) {
 					e.preventDefault();
 					e.stopPropagation();
+					$(container).show('fast');
 					container.input.focus();
 				}
-			}, false);
+			}, true);
 
 			var timerId, prev;
 			$(container.input).keyup(function (e) {
@@ -157,6 +240,9 @@
 				return true;
 			});
 
+			$(document.body).click(function () {
+				$(container).toggle('fast');
+			});
 		},
 
 		instantiateSearcher : function () {
@@ -175,13 +261,17 @@
 			var self = this;
 			var data = localStorage.getItem('refindex');
 			if (data) {
+				Chemr.log('Search index is read from localStorage');
 				self.searcher = new Chemr.Searcher.Dat(data);
 				return next();
 			} else {
-				var indexer = new Chemr.Indexer(self.domain);
-				return indexer.index().next(function (data) {
-					localStorage.setItem('refindex', data);
-					self.searcher = new Chemr.Searcher.Dat(data);
+				Chemr.log('Search index is not found in localStorage. creating...');
+				return next(function () {
+					var indexer = new Chemr.Indexer(self.domain);
+					return indexer.index().next(function (data) {
+						localStorage.setItem('refindex', data);
+						self.searcher = new Chemr.Searcher.Dat(data);
+					});
 				});
 			}
 		},
@@ -241,6 +331,26 @@
 				});
 
 			self.setCandinate(res);
+		},
+
+		notify : function (msg, opts) {
+			if (!opts) opts = {};
+			var self = this;
+
+			var div = document.createElement('div');
+			div.className = 'notification';
+			div.innerHTML = msg;
+			$(div).hide().show('fast');
+
+			if (!self.container.notifications.firstChild) $(self.container.notifications).show('fast');
+
+			this.container.notifications.appendChild(div);
+			return wait(opts.wait || 5).next(function () {
+				$(div).hide('slow', function () {
+					$(div).remove();
+					if (!self.container.notifications.firstChild) $(self.container.notifications).hide('fast');
+				});
+			});
 		}
 	};
 
@@ -295,10 +405,10 @@
 	Chemr.DomainFunctions = { };
 	Chemr.DomainFunctions["search.cpan.org"] = {
 		indexer : function () {
-			console.log('retrieve package detail');
+			Chemr.log('retrieve http://www.cpan.org/modules/02packages.details.txt');
 			return xhttp.get('http://www.cpan.org/modules/02packages.details.txt').
 			next(function (req) {
-				console.log('loaded');
+				Chemr.log('loaded, creating index...');
 				var reg = /^([a-z0-9:_]*?[a-z0-9_])\s+/img;
 				var str = req.responseText;
 				var index = "";
@@ -318,8 +428,11 @@
 	Chemr.DomainFunctions["api.jquery.com"] = {
 		indexer : function () {
 			var ret = new Deferred();
+			Chemr.log('Loading http://api.jquery.com/ ...');
 			var iframe = document.createElement('iframe');
+			iframe.setAttribute('style', 'position:absolute;top:0;left:0;z-index:0;');
 			iframe.addEventListener("load", function () {
+				Chemr.log('Loaded');
 				var document = iframe.contentDocument;
 				var anchors  = $X(".//a[@rel='bookmark']", document, Array);
 				var index    = new Array(anchors.length);
@@ -327,9 +440,9 @@
 					var a    = anchors[i];
 					var name = $X(".", a, String);
 					var url  = a.href;
-					console.log([name, url]);
 					index.push(name + "\t" + url + "\n");
 				}
+				iframe.parentNode.removeChild(iframe);
 				ret.call(index.join(""));
 			}, false);
 			iframe.src = "http://api.jquery.com/?" + Math.random();
@@ -338,16 +451,58 @@
 		}
 	};
 
+	Chemr.DomainFunctions["www.ruby-lang.org"] = {
+		indexer : function () {
+			var ret = new Deferred();
+			Chemr.log('Loading methodlist ...');
+			var iframe = document.createElement('iframe');
+			iframe.setAttribute('style', 'position:absolute;top:0;left:0;z-index:0;');
+			iframe.addEventListener("load", function () {
+				Chemr.log('Loaded');
+				var document = iframe.contentDocument;
+				var list     = $X(".//body/ul/li", document, Array);
+				var index    = new Array(list.length);
+				for (var i = 0, len = index.length; i < len; i++) {
+					var li = list[i];
+					var dt = $X("./text()", li, String).replace(/\s/g, '');
+					var as = $X("./ul/li/a", li, Array);
+					for (var j = 0, jlen = as.length; j < jlen; j++) {
+						var a   = as[j];
+						var dd  = $X(".", a, String).replace(/\s/g, '');
+						var url = a.href;
+						index.push(dd + "." + dt + "\t" + url + "\n");
+					}
+				}
+				iframe.parentNode.removeChild(iframe);
+				ret.call(index.sort().join(""));
+			}, false);
+			iframe.src = "http://www.ruby-lang.org/ja/man/html/methodlist.html?" + Math.random();
+			document.body.appendChild(iframe);
+			return ret;
+		}
+	};
+
 // TODO
 //	Chemr.DomainFunctions["developer.android.com"] = {
-//		load : function () {
-//		}
+//	};
+//	Chemr.DomainFunctions["dev.mysql.com"] = {
+//	};
+//	Chemr.DomainFunctions["practical-scheme.net"] = {
+//	};
+//	Chemr.DomainFunctions["docs.python.org"] = {
+//	};
+//	Chemr.DomainFunctions["www.w3.org/TR/css3-roadmap/"] = {
+//	};
+//	Chemr.DomainFunctions["www.haskell.org"] = {
+//	};
+//	Chemr.DomainFunctions["livedocs.adobe.com/flash/9.0_jp/ActionScriptLangRefV3/"] = {
 //	};
 
 	Chemr.DomainFunctions["www2u.biglobe.ne.jp"] = { // Under Translation of ECMA-262 3rd Edition
 		indexer : function () {
 			var ret = new Deferred();
 			var iframe = document.createElement('iframe');
+			iframe.setAttribute('style', 'position:absolute;top:0;left:0;z-index:0;');
 			iframe.addEventListener("load", function () {
 				var document = iframe.contentDocument;
 				var anchors  = $X(".//dt/a", document, Array);
@@ -358,6 +513,7 @@
 					var url  = a.href;
 					index.push(name + "\t" + url + "\n");
 				}
+				iframe.parentNode.removeChild(iframe);
 				ret.call(index.join(""));
 			}, false);
 			iframe.src = "http://www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/fulltoc.html";
@@ -371,6 +527,10 @@
 		new Chemr(domain);
 	} catch (e) { alert(e) }
 	
+	GM_registerMenuCommand('Reindex', function () {
+		localStorage.removeItem('refindex');
+		location.reload();
+	});
 }
 
 })();

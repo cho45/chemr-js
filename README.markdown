@@ -18,3 +18,16 @@ Current Support:
 	RET: select first candinate
 	C-U: clear input
 
+## Index ##
+
+First you access the site, this scripts crawl and create index.
+This may be little or very heavy but after all the index is stored in localStorage.
+
+You can recreate index by Greasemonkey menu command: "Reindex."
+
+
+## Independent Window ##
+
+You can create new profile (named 'chemr'), install Greasemonkey, Stylish and this script,
+and run createapp.rb, it creates Chemr.app which run standalone independent from Browser.
+
