@@ -537,6 +537,7 @@
 	Chemr.Searcher.Dat = function () { this.init.apply(this, arguments) }
 	Chemr.Searcher.Dat.prototype = {
 		init : function (dat) {
+			if (!dat) throw "dat is empty";
 			this.dat = dat; // keyword\turl\n
 		},
 
