@@ -16,9 +16,16 @@ Current Support:
 
 ## Key Binding ##
 
-	C-L: focus input area
+	C-l: focus input
+	C-n: select next candinate
+	C-p: select previous candinate
+	C-u: clear input
+	C-o: show current url
+	C-w: delete last word 
+	TAB: compliment first candinate
+	ESC: hide input area
 	RET: select first candinate
-	C-U: clear input
+
 
 ## Index ##
 

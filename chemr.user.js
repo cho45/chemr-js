@@ -14,6 +14,8 @@
 // ==/UserScript==
 
 (function () { with (D()) {
+	var LOADING_IMG = 'data:image/gif;base64,R0lGODlhEAAQAPMKAH19fYWFhY6OjpeXl7CwsLi4uMDAwNLS0urq6vz8/P///wAAAAAAAAAAAAAAAAAAACH5BAAKAAAAIf4aQ3JlYXRlZCB3aXRoIGFqYXhsb2FkLmluZm8AIf8LTkVUU0NBUEUyLjADAQAAACwAAAAAEAAQAAAETFDJSau9NQ3AgSxGYmmdFAACkgmlcrCCOBnoNiWsQW2HRh2AAYWDIU6MGaSCRyG4ghRa7EjIUXCog6QzpSBYgS1nILsaCuJxGcNuTyIAIfkEAAoAAAAsAAAAABAAEACDfX19hYWFjo6Ol5eXsLCwwMDAysrK0tLS4+Pj6urq8vLy/Pz8////AAAAAAAAAAAABGKQSZmCmThLAQbS2FIEQJmATMKVAMEsSrZwggEEyjIIC1YAPMag8OIQJwPAQbJkdjAl0CI6KfU0VEmyuWgenpNfsDAoAo6SmUtBMtCukxiDwAKeQAlWoAAHIZICKBoGAXcTEQAh+QQACgAAACwAAAAAEAAQAIN9fX2FhYWOjo6Xl5egoKCwsLDAwMDKysrS0tLj4+Pq6ury8vL8/Pz///8AAAAAAAAEWrDJORehGB+AsmTGAAAByWSKMK6jgTGq0CVj0FEGIJxNXvAU0a2naDAQrsnI01gqAR6GU2JAnBTJBgIwyDAKgCQsjEGUAIljDEhlrQTFV+k8MLAp2wMzQ1jsIwAh+QQACgAAACwAAAAAEAAQAIN9fX2FhYWOjo6Xl5enp6ewsLC4uLjAwMDS0tLj4+Pq6ur8/Pz///8AAAAAAAAAAAAETpDJSau9bK26zgDAcGhDQikCqALCZ0pLKiASkoIvc7Ab/OETQ4A2+QExSEZiuexhVgUKImCgqKKTGOBgBc00Np6VcFsJFJVo5ydyJt/wCAAh+QQACgAAACwAAAAAEAAQAIN9fX2FhYWOjo6Xl5ewsLDAwMDKysrS0tLj4+Pq6ury8vL8/Pz///8AAAAAAAAAAAAEWpDJSau9eJUBwCjLpQhdCQjJRQhHeJBCOKWMLC1kwaQIQCgWAyAgCDA4Q5DkgOwYhKXBYVIIdAYMotVgURAAiB2jcLLVQrQbrLV4DcySBMl0Alo0yA8cw+9TIgAh+QQACgAAACwAAAAAEAAQAIN9fX2FhYWOjo6Xl5egoKCwsLDAwMDKysrS0tLj4+Pq6ury8vL8/Pz///8AAAAAAAAEWrDJSau9WBoAhmEWYxwNwnGCQiEBEDBgKQBCTJxAQTGzIS2HFkc1MQ0onITBhwQ0YxpDgkMZABAUxSlwWGho0EYBR5DwaAgQrBXAThSzExbxCRmsAGZmz7dEAAA7';
+
 	http = function (opts) {
 		var d = Deferred();
 		var req = new XMLHttpRequest();
@@ -64,6 +66,7 @@
 		}
 	};
 	Chemr.log.log = [];
+	Chemr.DEBUG = 1;
 	Chemr.prototype = {
 		init : function (domain) {
 			var self = this;
@@ -89,6 +92,7 @@
 					<div class="search">
 						<input type="text" name="input" class="input" placeholder="Input" autocomplete="off"/>
 						<select class="select" size="30"></select>
+						<img class="loading" src="" alt=""/>
 					</div>
 					<div class="notifications"></div>
 					<style type="text/css">
@@ -106,18 +110,27 @@
 						}
 						
 						#chemr-container .search .input {
-							-moz-box-sizing: border-box;
-							box-sizing: border-box;
+							font-size: 13px !important;
+							width: 100%;
 							margin: 0;
 							padding: 1px;
-							width: 100%;
-							font-size: 13px !important;
+							letter-spacing: 0;
+							box-sizing: border-box;
+							-moz-box-sizing: border-box;
 						}
 						
 						#chemr-container .search .select {
+							letter-spacing: 0;
 							width: 100%;
 							box-sizing: content-box;
 							font-size: 13px !important;
+						}
+
+						#chemr-container .search .loading {
+							display: none;
+							position: absolute;
+							top: 5px;
+							right: 5px;
 						}
 
 						#chemr-container .search .select option {
@@ -125,6 +138,12 @@
 						}
 						#chemr-container .search .select option:nth-child(odd) {
 							background: #e9e9e9;
+						}
+
+						#chemr-container .search .select option .info {
+							padding: 0 1px;
+							font-size: 80%;
+							color: #666;
 						}
 
 						#chemr-container .notifications {
@@ -138,11 +157,13 @@
 							padding: 0.5em 1em;
 							background: #000;
 							color: #fff;
+							letter-spacing: 0;
 							opacity: 0.8;
 						}
 					</style>
 				</div>
 			]]></>.toString());
+			this.container.loading.src = LOADING_IMG;
 			document.body.appendChild(this.container);
 		},
 
@@ -168,6 +189,15 @@
 					'C-u' : function () {
 						container.input.value = '';
 					},
+					'C-o' : function () {
+						var option = container.select.childNodes[container.select.selectedIndex];
+						prompt('URL', option.value);
+					},
+					'C-w' : function () {
+						var text = container.input.value.replace(/(\w+|\W+)$/, '');
+						container.input.value = text;
+						self.search(text);
+					},
 					'TAB' : function () {
 						var option = container.select.childNodes[container.select.selectedIndex + 1];
 						if (option) {
@@ -190,9 +220,10 @@
 				if (!option) return;
 				var url  = option.value;
 				document.title = option.title;
-				Chemr.log("loading...", { wait: 1 });
+				Chemr.log("loading... " + url, { wait: 1 });
+				$(self.container.loading).show();
 				http.get(url).next(function (res) {
-					Chemr.log("done", { wait : 1 });
+					$(self.container.loading).hide();
 					document.body.removeChild(container);
 					document.body.innerHTML = res.responseText;
 					document.body.appendChild(container);
@@ -295,7 +326,7 @@
 			for (var i = 0, len = list.length; i < len; i++) {
 				var item   = this.applyDomainFunction('item', list[i]);
 				var option = document.createElement('option');
-				option.innerHTML = item[2];
+				option.innerHTML = item[2] + (Chemr.DEBUG ? '<div class="info">[' + item.score + '] ' + item[1] + '</div>' : '');
 				option.value     = item[1];
 				option.title     = item[0];
 				select.add(option, null);
@@ -332,29 +363,27 @@
 					if (match) {
 						var score = Math.abs(str.length - (match.length - 1));
 
-						match.shift();
 						var t = "";
-						for (var j = 0, m = match.shift(), len = str.length; j < len; j++) {
-							if (str[j] == m) {
+						for (var j = 0, k = 1, len = str.length; j < len; j++) {
+							if (str[j] == match[k]) {
 								t += '<b>' + escapeHTML(str[j]) + '</b>';
-								m = match.shift();
+								k++;
 							} else {
 								t += escapeHTML(str[j]);
 							}
 						}
 						t += escapeHTML(str.slice(j));
 						i[2] = t;
-
-						return [i, score];
+						i.score = score;
+						return i;
 					} else {
-						return [i, Number.MAX_VALUE];
+						i[2] = i[0];
+						i.score = Number.MAX_VALUE;
+						return i;
 					}
 				}).
 				sort(function (a, b) {
-					return a[1] - b[1];
-				}).
-				map(function (i) {
-					return i[0];
+					return a.score - b.score
 				});
 
 			self.setCandinate(res);
@@ -398,9 +427,11 @@
 			if (ret) return ret;
 
 			return next(function () {
-				return self.crawlTarget.length ? self.fetch(function (src, doc) {
-					self.functions.indexer.call(self, src, doc);
-				}).next(arguments.callee) : null;
+				return self.crawlTarget.length ? parallel([
+					self.fetch(function (src, doc) { self.functions.indexer.call(self, src, doc) }),
+					self.fetch(function (src, doc) { self.functions.indexer.call(self, src, doc) }),
+					self.fetch(function (src, doc) { self.functions.indexer.call(self, src, doc) })
+				]).next(arguments.callee) : null;
 			}).
 			next(function () {
 				// self.indexArray.sort();
@@ -409,6 +440,7 @@
 		},
 
 		pushIndex : function (index) {
+						console.log(index);
 			this.indexArray.push(index);
 		},
 
@@ -420,6 +452,7 @@
 			var self = this;
 			var d = new Deferred();
 			var url = this.crawlTarget.shift();
+			if (!url) return next();
 			var iframe = document.createElement('iframe');
 			iframe.setAttribute('style', 'position:absolute;top:0;left:0;z-index:0;');
 			iframe.style.display = "none";
