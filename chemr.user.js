@@ -6,6 +6,7 @@
 // @include     http://developer.android.com/*
 // @include     http://api.jquery.com/*
 // @include     http://www.ruby-lang.org/*
+// @include     http://www.haskell.org/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     http://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
 // @require     http://svn.coderepos.org/share/lang/javascript/jsenumerator/trunk/jsenumerator.nodoc.js
@@ -629,7 +630,7 @@
 
 	Chemr.DomainFunctions["www2u.biglobe.ne.jp"] = { // Under Translation of ECMA-262 3rd Edition
 		indexer : function (page, document) {
-			if (!page) this.pushPage("http://www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/fulltoc.html");
+			if (!page) return this.pushPage("http://www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/fulltoc.html");
 			var anchors  = $X(".//dt/a", document, Array);
 			var index    = new Array(anchors.length);
 			for (var i = 0, len = index.length; i < len; i++) {
@@ -638,6 +639,7 @@
 				var url  = a.href;
 				this.pushIndex(name + "\t" + url);
 			}
+			return null;
 		}
 	};
 
@@ -708,6 +710,30 @@
 		}
 	};
 
+	Chemr.DomainFunctions["www.haskell.org"] = {
+		indexer : function (page, document) {
+			if (!page) return this.pushPage('http://www.haskell.org/ghc/docs/6.12.2/html/libraries/doc-index-A.html');
+			if (page == 'http://www.haskell.org/ghc/docs/6.12.2/html/libraries/doc-index-A.html') {
+				var indexes = document.querySelectorAll('table.vanilla table tr.indexrow a[href^="doc-index"]');
+				for (var i = 0, len = indexes.length; i < len; i++) {
+					if (indexes[i].href == 'http://www.haskell.org/ghc/docs/6.12.2/html/libraries/doc-index-A.html') continue;
+					this.pushPage(indexes[i].href)
+				}
+			}
+
+			var links = document.querySelectorAll('#indexlist a');
+			for (var i = 0, len = links.length; i < len; i++) {
+				var a = links[i];
+
+				var path = a.href.split('/');
+				var name = decodeURIComponent(path[path.length-1]).replace(/\.html/,'').replace(/-/g,'.');
+				this.pushIndex(name + "\t" + a.href);
+			}
+
+			return null;
+		}
+	};
+
 // TODO
 //	Chemr.DomainFunctions["dev.mysql.com"] = {
 //	};
@@ -716,8 +742,6 @@
 //	Chemr.DomainFunctions["docs.python.org"] = {
 //	};
 //	Chemr.DomainFunctions["www.w3.org/TR/css3-roadmap/"] = {
-//	};
-//	Chemr.DomainFunctions["www.haskell.org"] = {
 //	};
 //	Chemr.DomainFunctions["livedocs.adobe.com/flash/9.0_jp/ActionScriptLangRefV3/"] = {
 //	};
