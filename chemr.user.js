@@ -400,7 +400,7 @@
 
 		search : function (query) {
 			var self = this;
-			var itr = self.searcher.search(query);
+			var itr = self.searcher.search(query.replace(/\s+/g, '.*'));
 			var max = 100;
 			var res = [];
 			for (var i = 0, item = null; i < 30 && (item = itr.next()); i++) {
