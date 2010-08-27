@@ -300,11 +300,11 @@
 			var handler = {
 				'W-l' : function () {
 					self.html.input.focus();
-					$(self.html.container).hide('show');
+					$(self.html.container).show('fast');
 				},
 				'C-l' : function () {
 					self.html.input.focus();
-					$(self.html.container).hide('show');
+					$(self.html.container).show('fast');
 				},
 				'C-n' : function () {
 					var option = self.html.select.childNodes[self.html.select.selectedIndex + 1];
