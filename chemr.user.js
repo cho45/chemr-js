@@ -7,6 +7,7 @@
 // @include     http://api.jquery.com/*
 // @include     http://www.ruby-lang.org/*
 // @include     http://www.haskell.org/*
+// @include     http://developer.apple.com/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     http://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
 // @require     http://svn.coderepos.org/share/lang/javascript/jsenumerator/trunk/jsenumerator.nodoc.js
@@ -480,16 +481,17 @@
 			if (!this.functions.indexer) throw "indexer not defined";
 
 			var ret = self.functions.indexer.call(self);
-			if (ret) return ret;
+			if (!ret) {
+				ret = next(function () {
+					return self.crawlTarget.length ? parallel([
+						self.fetch(function (src, doc) { self.functions.indexer.call(self, src, doc) }),
+						self.fetch(function (src, doc) { self.functions.indexer.call(self, src, doc) }),
+						self.fetch(function (src, doc) { self.functions.indexer.call(self, src, doc) })
+					]).next(arguments.callee) : null;
+				});
+			}
 
-			return next(function () {
-				return self.crawlTarget.length ? parallel([
-					self.fetch(function (src, doc) { self.functions.indexer.call(self, src, doc) }),
-					self.fetch(function (src, doc) { self.functions.indexer.call(self, src, doc) }),
-					self.fetch(function (src, doc) { self.functions.indexer.call(self, src, doc) })
-				]).next(arguments.callee) : null;
-			}).
-			next(function () {
+			return ret.next(function () {
 				// self.indexArray.sort();
 				return self.indexArray.join("\n");
 			});
@@ -732,6 +734,21 @@
 			}
 
 			return null;
+		}
+	};
+
+	Chemr.DomainFunctions["developer.apple.com"] = {
+		indexer : function (page, document) {
+			var self = this;
+			return http.get('http://developer.apple.com/mac/library/navigation/library.json').next(function (req) {
+				var data = eval('(' + req.responseText + ')');
+				var docs = data.documents;
+				for (var i = 0; i < docs.length; i++) {
+					var name = docs[i][0];
+					var url  = docs[i][9];
+					self.pushIndex(name + "\n" + "http://developer.apple.com/mac/library/navigation/" + url);
+				}
+			});
 		}
 	};
 
