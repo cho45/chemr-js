@@ -746,7 +746,7 @@
 				for (var i = 0; i < docs.length; i++) {
 					var name = docs[i][0];
 					var url  = docs[i][9];
-					self.pushIndex(name + "\n" + "http://developer.apple.com/mac/library/navigation/" + url);
+					self.pushIndex(name + "\t" + "http://developer.apple.com/mac/library/navigation/" + url);
 				}
 			});
 		}
