@@ -401,7 +401,7 @@
 
 		search : function (query) {
 			var self = this;
-			var itr = self.searcher.search(query.replace(/\s+/g, '.*'));
+			var itr = self.searcher.search(query.replace(/\s+/g, '.*?'));
 			var max = 100;
 			var res = [];
 			for (var i = 0, item = null; i < 30 && (item = itr.next()); i++) {
@@ -409,8 +409,8 @@
 			}
 
 			// scoring and sort
-			var regex = new RegExp('(' + query.split('').map(function (c) {
-				return c.replace(/\W/g,'\\$&');
+			var regex = new RegExp('(' + query.replace(/\s+/, ' ').split('').map(function (c) {
+				return c.replace(/\W/g,'\\$&').replace(/\\ /g, '.*?');
 			}).join(').*?(') + ')', 'i');
 
 			res = res.
@@ -435,7 +435,7 @@
 						return i;
 					} else {
 						i[2] = i[0];
-						i.score = Number.MAX_VALUE;
+						i.score = str.length * 100;
 						return i;
 					}
 				}).
