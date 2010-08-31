@@ -18,6 +18,11 @@
 (function () { with (D()) {
 
 	if (window != window.parent) {
+		window.parent.postMessage(JSON.stringify({
+			name    : 'title',
+			title   : document.title
+		}), '*');
+
 		// inner frame
 		document.addEventListener('keypress', function (e) {
 			if (e.which == 108 && (e.ctrlKey || e.altKey || e.metaKey)) e.preventDefault();
@@ -88,9 +93,21 @@
 	Chemr.log.log = [];
 	Chemr.DEBUG = 1;
 	Chemr.prototype = {
-		init : function (domain) {
+		init : function (location) {
 			var self = this;
-			self.domain = domain;
+			self.location = location;
+
+			var segments = location.pathname.split('/');
+			for (var i = 0, len = segments.length; i < len; i++) {
+				var define = location.hostname + segments.slice(0, len - i).join('/');
+				if (Chemr.DomainFunctions[define]) {
+					self.define = define;
+					self.functions = Chemr.DomainFunctions[define];
+					break;
+				}
+			}
+			if (!self.define) throw "undefined site: " + location.href;
+
 			self.createContainer();
 			Chemr.log("initializing Chemr...");
 			self.bindEvents();
@@ -218,7 +235,7 @@
 			$(document).keypress(function (e) { return self.keypress(e) });
 			window.addEventListener('message', function (e) {
 				var event = JSON.parse(e.data);
-				console.log(event);
+				self[ event.name ]( event );
 				self.keypress(event);
 			}, false);
 
@@ -294,6 +311,10 @@
 			});
 		},
 
+		title : function (e) {
+			document.title = e.title;
+		},
+
 		keypress : function (e) {
 			var self = this;
 			var key = keyString(e);
@@ -367,7 +388,7 @@
 			} else {
 				Chemr.log('Search index is not found in localStorage. creating...');
 				return next(function () {
-					var indexer = new Chemr.Indexer(self.domain);
+					var indexer = new Chemr.Indexer(self.functions);
 					return indexer.index().next(function (data) {
 						localStorage.setItem('refindex', data);
 						self.searcher = new Chemr.Searcher.Dat(data);
@@ -391,9 +412,9 @@
 		},
 
 		applyDomainFunction : function (name, obj) {
-			var domainfunc = Chemr.DomainFunctions[this.domain];
-			if (domainfunc && domainfunc[name]) {
-				return Chemr.DomainFunctions[this.domain][name](obj);
+			var self = this;
+			if (self.functions[name]) {
+				return self.functions[name](obj);
 			} else {
 				return obj;
 			}
@@ -469,9 +490,9 @@
 
 	Chemr.Indexer = function () { this.init.apply(this, arguments) };
 	Chemr.Indexer.prototype = {
-		init : function (domain) {
+		init : function (functions) {
 			this.domain      = domain;
-			this.functions   = Chemr.DomainFunctions[this.domain];
+			this.functions   = functions;
 			this.crawlTarget = [];
 			this.indexArray  = [];
 		},
@@ -631,7 +652,7 @@
 		}
 	};
 
-	Chemr.DomainFunctions["www2u.biglobe.ne.jp"] = { // Under Translation of ECMA-262 3rd Edition
+	Chemr.DomainFunctions["www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/"] = { // Under Translation of ECMA-262 3rd Edition
 		indexer : function (page, document) {
 			if (!page) return this.pushPage("http://www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/fulltoc.html");
 			var anchors  = $X(".//dt/a", document, Array);
@@ -765,8 +786,7 @@
 //	};
 
 	try {
-		var domain = location.hostname;
-		new Chemr(domain);
+		new Chemr(location);
 	} catch (e) { alert(e) }
 	
 	GM_registerMenuCommand('Reindex', function () {
