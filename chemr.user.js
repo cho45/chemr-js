@@ -511,9 +511,9 @@
 				});
 			}
 
-			return ret.next(function () {
+			return ret.next(function (ret) {
 				// self.indexArray.sort();
-				return self.indexArray.join("\n");
+				return ret || self.indexArray.join("\n");
 			});
 		},
 
