@@ -491,7 +491,6 @@
 	Chemr.Indexer = function () { this.init.apply(this, arguments) };
 	Chemr.Indexer.prototype = {
 		init : function (functions) {
-			this.domain      = domain;
 			this.functions   = functions;
 			this.crawlTarget = [];
 			this.indexArray  = [];
