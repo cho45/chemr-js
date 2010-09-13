@@ -196,7 +196,7 @@
 
 							#chemr-container .notifications {
 								position: fixed;
-								top: 0;
+								bottom: 0;
 								left: 0;
 								font-family: "Trebuchet MS", "Verdana", "Helvetica", "Arial" ,sans-serif;
 								font-size: 12px;
