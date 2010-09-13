@@ -422,9 +422,11 @@
 
 		search : function (query) {
 			var self = this;
-			var itr = self.searcher.search(query.replace(/\s+/g, '.*?'));
-			var max = 100;
-			var res = [];
+			var cnv  = self.functions.beforeSearch || function (a) { return a.replace(/\s+/g, '.*?') };
+			query    = cnv(query);
+			var itr  = self.searcher.search(query);
+			var max  = 100;
+			var res  = [];
 			for (var i = 0, item = null; i < 30 && (item = itr.next()); i++) {
 				res.push(item);
 			}
@@ -432,7 +434,7 @@
 			// scoring and sort
 			var regex = new RegExp('(' + query.replace(/\s+/, ' ').split('').map(function (c) {
 				return c.replace(/\W/g,'\\$&').replace(/\\ /g, '.*?');
-			}).join(').*?(') + ')', 'i');
+			}).join(')?.*?(') + ')?', 'i');
 
 			res = res.
 				map(function (i) {
@@ -453,12 +455,11 @@
 						t += escapeHTML(str.slice(j));
 						i[2] = t;
 						i.score = score;
-						return i;
 					} else {
 						i[2] = i[0];
 						i.score = str.length * 100;
-						return i;
 					}
+					return i;
 				}).
 				sort(function (a, b) {
 					return a.score - b.score
@@ -613,6 +614,10 @@
 		item : function (item) {
 			item[1] = "http://search.cpan.org/perldoc?" + encodeURIComponent(item[0]);
 			return item;
+		},
+
+		beforeSearch : function (query) {
+			return query.replace(/\s+/g, '.*?').replace(/;/g, ':');
 		}
 	};
 
