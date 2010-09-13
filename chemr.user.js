@@ -8,6 +8,7 @@
 // @include     http://www.ruby-lang.org/*
 // @include     http://www.haskell.org/*
 // @include     http://developer.apple.com/*
+// @include     http://nodejs.org/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     http://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
 // @require     http://svn.coderepos.org/share/lang/javascript/jsenumerator/trunk/jsenumerator.nodoc.js
@@ -774,6 +775,35 @@
 					self.pushIndex(name + "\t" + "http://developer.apple.com/mac/library/navigation/" + url);
 				}
 			});
+		}
+	};
+
+	Chemr.DomainFunctions["nodejs.org"] = {
+		indexer : function (page, document) {
+			if (!page) return this.pushPage('http://nodejs.org/api.html');
+			var headers = document.querySelectorAll('h2, h3');
+			for (var i = 0, len = headers.length; i < len; i++) {
+				var header = headers[i];
+				if (!header.id) continue;
+				var name = $X('.', header, String).match(/.+/)[0];
+				var url = 'javascript:' + encodeURIComponent(uneval(function (id) {
+					var $target = $('#' + id);
+					$target = $target.length && $target || $('[name=' + id + ']');
+					if ($target.length) {
+						var targetOffset = $('#man').scrollTop()+$target.offset().top;
+						
+						$('#man').animate({
+							scrollTop: targetOffset
+						}, 200);
+
+						return false;
+					}
+					return false;
+				}) + '(' + uneval(header.id) + ');void(0)');
+				this.pushIndex(name + "\t" + url);
+			}
+
+			return null;
 		}
 	};
 
