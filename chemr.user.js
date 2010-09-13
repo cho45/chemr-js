@@ -246,20 +246,7 @@
 				var url  = option.value;
 				document.title = option.title;
 				Chemr.log("loading... " + url, { wait: 1 });
-
-				var changelocation = false;
-				try {
-					changelocation = self.html.iframe.contentWindow.location.href.match(/^[^#]+/)[0] != url.match(/^[^#]+/)[0]
-				} catch (e) {
-					changelocation = true;
-				}
-				if (changelocation) {
-					var iframe = self.html.iframe.cloneNode(true);
-					self.html.iframe.parentNode.replaceChild(iframe, self.html.iframe);
-					self.html.iframe = iframe;
-				}
-
-				self.html.iframe.contentWindow.addEventListener("DOMContentLoaded", function () {
+				self.html.iframe.addEventListener("load", function () {
 					var document = self.html.iframe.contentDocument;
 					self.applyDomainFunction('load', document);
 				}, false);
@@ -712,7 +699,8 @@
 		},
 
 		load : function (document) {
-			return;
+			return; // XXX
+			document.body.innerHTML = document.body.innerHTML;
 			var style = document.createElement('style');
 			style.type = "text/css";
 			style.appendChild(document.createTextNode(<><![CDATA[
