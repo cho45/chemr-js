@@ -790,7 +790,7 @@
 					var $target = $('#' + id);
 					$target = $target.length && $target || $('[name=' + id + ']');
 					if ($target.length) {
-						var targetOffset = $('#man').scrollTop()+$target.offset().top;
+						var targetOffset = $('#man').scrollTop() + $target.offset().top - 45;
 						
 						$('#man').animate({
 							scrollTop: targetOffset
