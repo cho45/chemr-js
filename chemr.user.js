@@ -9,6 +9,8 @@
 // @include     http://www.haskell.org/*
 // @include     http://developer.apple.com/*
 // @include     http://nodejs.org/*
+// @include     https://developer.mozilla.org/*
+// @include     http://dev.mysql.com/doc/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     http://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
 // @require     http://svn.coderepos.org/share/lang/javascript/jsenumerator/trunk/jsenumerator.nodoc.js
@@ -101,6 +103,13 @@
 			var segments = location.pathname.split('/');
 			for (var i = 0, len = segments.length; i < len; i++) {
 				var define = location.hostname + segments.slice(0, len - i).join('/');
+				if (Chemr.DomainFunctions[define]) {
+					self.define = define;
+					self.functions = Chemr.DomainFunctions[define];
+					break;
+				}
+
+				define += '/';
 				if (Chemr.DomainFunctions[define]) {
 					self.define = define;
 					self.functions = Chemr.DomainFunctions[define];
@@ -807,9 +816,57 @@
 		}
 	};
 
+	Chemr.DomainFunctions["developer.mozilla.org"] = {
+		indexer : function (page, document) {
+			if (!page) return this.pushPage('https://developer.mozilla.org/Special:Sitemap');
+			var anchors = document.querySelectorAll('a[pageid][rel="internal"]');
+			for (var i = 0, len = anchors.length; i < len; i++) {
+				var a = anchors[i];
+				var name = a.title;;
+				var url  = a.href;
+				this.pushIndex(name + "\t" + url);
+			}
+
+			return null;
+		}
+	};
+
+	Chemr.DomainFunctions["dev.mysql.com/doc/"] = {
+		indexer : function (page, document) {
+			if (!page) return this.pushPage('http://dev.mysql.com/doc/refman/5.6/en/ix02.html');
+//			var lists = document.querySelectorAll('.indexdiv dl dt');
+//			for (var i = 0, len = lists.length; i < len; i++) {
+//				var l = lists[i];
+//				var a = l.querySelector('a');
+//				if (!a) continue;
+//				var name = l.firstChild.nodeValue.replace(/,\s*$/, '');
+//				var url  = a.href;
+//				this.pushIndex(name + "\t" + url);
+//			}
+
+			var urls = {};
+			var lists = document.querySelectorAll('code.literal');
+			for (var i = 0, len = lists.length; i < len; i++) {
+				var l = lists[i];
+				var a = l.parentNode;
+				var name = l.firstChild.nodeValue;
+				var url = a.href;
+				if (!url) continue;
+				if (urls[url]) continue;
+				urls[url] = true;
+				this.pushIndex(name + "\t" + url);
+			}
+
+			return null;
+		},
+
+		// disable ' '
+		beforeSearch : function (query) {
+			return query;
+		}
+	};
+
 // TODO
-//	Chemr.DomainFunctions["dev.mysql.com"] = {
-//	};
 //	Chemr.DomainFunctions["practical-scheme.net"] = {
 //	};
 //	Chemr.DomainFunctions["docs.python.org"] = {
