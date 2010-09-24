@@ -11,6 +11,7 @@
 // @include     http://nodejs.org/*
 // @include     https://developer.mozilla.org/*
 // @include     http://dev.mysql.com/doc/*
+// @include     http://template-toolkit.org/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     http://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
 // @require     http://svn.coderepos.org/share/lang/javascript/jsenumerator/trunk/jsenumerator.nodoc.js
@@ -863,6 +864,24 @@
 		// disable ' '
 		beforeSearch : function (query) {
 			return query;
+		}
+	};
+
+	Chemr.DomainFunctions["template-toolkit.org"] = {
+		indexer : function (page, document) {
+			if (!page) {
+				this.pushPage('http://template-toolkit.org/docs/manual/Directives.html');
+				this.pushPage('http://template-toolkit.org/docs/manual/VMethods.html');
+				this.pushPage('http://template-toolkit.org/docs/manual/Filters.html');
+				return;
+			};
+
+			var lis = document.querySelectorAll('ul.toc a');
+			for (var i = 0, a; a = lis[i]; i++) {
+				var name = $X('.', a, String);
+				var url  = a.href;
+				this.pushIndex(name + "\t" + url);
+			}
 		}
 	};
 
