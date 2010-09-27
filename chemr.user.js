@@ -338,15 +338,22 @@
 					self.html.input.focus();
 					$(self.html.container).show('fast');
 				},
-				'C-n' : function () {
+				'C-n Down' : function () {
 					var option = self.html.select.childNodes[self.html.select.selectedIndex + 1];
 					if (option) option.selected = true;
 					$(self.html.select).change();
 				},
-				'C-p' : function () {
+				'C-p Up' : function () {
 					var option = self.html.select.childNodes[self.html.select.selectedIndex - 1];
 					if (option) option.selected = true;
 					$(self.html.select).change();
+				},
+				'C-a W-Left' : function () {
+					self.html.input.setSelectionRange(0, 0);
+				},
+				'C-e W-Right' : function () {
+					var len = self.html.input.value.length;
+					self.html.input.setSelectionRange(len, len);
 				},
 				'C-u' : function () {
 					self.html.input.value = '';
@@ -369,9 +376,10 @@
 				'ESC' : function () {
 					$(self.html.container).hide('fast');
 				}
-			}[key];
-			if (handler) {
-				handler();
+			};
+			for (var bind in handler) if (handler.hasOwnProperty(bind)) {
+				if ((' ' + bind + ' ').indexOf(' ' + key + ' ') == -1) continue;
+				handler[bind]();
 				return false;
 			}
 			return true;
