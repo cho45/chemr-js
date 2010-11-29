@@ -12,6 +12,7 @@
 // @include     https://developer.mozilla.org/*
 // @include     http://dev.mysql.com/doc/*
 // @include     http://template-toolkit.org/*
+// @include     https://developer.appcelerator.com/apidoc/mobile/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     https://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
 // @require     https://gist.github.com/3239.txt#createElementFromString
@@ -894,6 +895,27 @@
 		}
 	};
 
+	Chemr.DomainFunctions["developer.appcelerator.com/apidoc/mobile/"] = {
+		indexer : function (page, document) {
+			var self = this;
+			return http.get('https://developer.appcelerator.com/apidoc/mobile/1.4/api.json').next(function (req) {
+				var data = eval('(' + req.responseText + ')');
+				for (var key in data) if (data.hasOwnProperty(key)) {
+					var val = data[key];
+					self.pushIndex(key + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + key + '-module');
+					for (var i = 0, it; it = val.methods[i]; i++) {
+						self.pushIndex(key + "#" + it.name + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
+					}
+					for (var i = 0, it; it = val.properties[i]; i++) {
+						self.pushIndex(key + "#" + it.name + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
+					}
+					for (var i = 0, it; it = val.events[i]; i++) {
+						self.pushIndex(key + "#" + it.name +  "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
+					}
+				}
+			});
+		}
+	};
 // TODO
 //	Chemr.DomainFunctions["practical-scheme.net"] = {
 //	};
@@ -911,6 +933,10 @@
 	GM_registerMenuCommand('Reindex', function () {
 		localStorage.removeItem('refindex');
 		location.reload();
+	});
+
+	GM_registerMenuCommand('List supported sites', function () {
+		GM_openInTab('https://github.com/cho45/chemr-js');
 	});
 }
 
