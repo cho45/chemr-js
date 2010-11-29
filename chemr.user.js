@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name        Chemr
 // @namespace   http://lowreal.net/
+// @include     https://github.com/cho45/chemr-js/blob/master/README.markdown
 // @include     http://search.cpan.org/*
 // @include     http://www2u.biglobe.ne.jp/*
 // @include     http://developer.android.com/*
@@ -926,18 +927,31 @@
 //	Chemr.DomainFunctions["livedocs.adobe.com/flash/9.0_jp/ActionScriptLangRefV3/"] = {
 //	};
 
-	try {
-		new Chemr(location);
-	} catch (e) { alert(e) }
-	
-	GM_registerMenuCommand('Reindex', function () {
-		localStorage.removeItem('refindex');
-		location.reload();
-	});
+	if (location.href == 'https://github.com/cho45/chemr-js/blob/master/README.markdown') {
+		GM_registerMenuCommand('Show supported site code', function () {
+			var ret = '';
+			for (var key in Chemr.DomainFunctions) if (Chemr.DomainFunctions.hasOwnProperty(key)) {
+				var top = 'http://' + key;
+				var nam = Chemr.DomainFunctions[key].name || key;
+				ret += " * [" + nam + "](" + top + ")\n";
+			}
+			alert(ret);
+		});
+	} else {
+		try {
+			new Chemr(location);
+		} catch (e) { alert(e) }
 
-	GM_registerMenuCommand('List supported sites', function () {
-		GM_openInTab('https://github.com/cho45/chemr-js');
-	});
+		GM_registerMenuCommand('Reindex', function () {
+			localStorage.removeItem('refindex');
+			location.reload();
+		});
+
+		GM_registerMenuCommand('List supported sites', function () {
+			GM_openInTab('https://github.com/cho45/chemr-js');
+		});
+	}
+	
 }
 
 function escapeHTML (t) {

@@ -8,11 +8,18 @@ Just provide incremental search index for reference sites by Greasemonkey.
 
 Current Support:
 
- * http://search.cpan.org/
- * http://www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/
- * http://api.jquery.com/
- * http://www.ruby-lang.org/
- * http://developer.android.com/
+ * [search.cpan.org](http://search.cpan.org)
+ * [api.jquery.com](http://api.jquery.com)
+ * [www.ruby-lang.org](http://www.ruby-lang.org)
+ * [www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/](http://www2u.biglobe.ne.jp/~oz-07ams/prog/ecma262r3/)
+ * [developer.android.com](http://developer.android.com)
+ * [www.haskell.org](http://www.haskell.org)
+ * [developer.apple.com](http://developer.apple.com)
+ * [nodejs.org](http://nodejs.org)
+ * [developer.mozilla.org](http://developer.mozilla.org)
+ * [dev.mysql.com/doc/](http://dev.mysql.com/doc/)
+ * [template-toolkit.org](http://template-toolkit.org)
+ * [developer.appcelerator.com/apidoc/mobile/](http://developer.appcelerator.com/apidoc/mobile/)
 
 ## Key Binding ##
 
