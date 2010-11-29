@@ -13,10 +13,9 @@
 // @include     http://dev.mysql.com/doc/*
 // @include     http://template-toolkit.org/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
-// @require     http://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
-// @require     http://svn.coderepos.org/share/lang/javascript/jsenumerator/trunk/jsenumerator.nodoc.js
-// @require     http://gist.github.com/3239.txt#createElementFromString
-// @require     http://gist.github.com/3238.txt#$X
+// @require     https://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
+// @require     https://gist.github.com/3239.txt#createElementFromString
+// @require     https://gist.github.com/3238.txt#$X
 // ==/UserScript==
 
 (function () { with (D()) {
