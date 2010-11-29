@@ -880,6 +880,8 @@
 				this.pushPage('http://template-toolkit.org/docs/manual/Directives.html');
 				this.pushPage('http://template-toolkit.org/docs/manual/VMethods.html');
 				this.pushPage('http://template-toolkit.org/docs/manual/Filters.html');
+				this.pushPage('http://template-toolkit.org/docs/manual/Variables.html');
+				this.pushPage('http://template-toolkit.org/docs/manual/Plugins.html');
 				return;
 			};
 
