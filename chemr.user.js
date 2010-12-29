@@ -13,7 +13,7 @@
 // @include     https://developer.mozilla.org/*
 // @include     http://dev.mysql.com/doc/*
 // @include     http://template-toolkit.org/*
-// @include     https://developer.appcelerator.com/apidoc/mobile/*
+// @include     http://developer.appcelerator.com/apidoc/mobile/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     https://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
 // @require     https://gist.github.com/3239.txt#createElementFromString
@@ -445,9 +445,9 @@
 			var cnv  = self.functions.beforeSearch || function (a) { return a.replace(/\s+/g, '.*?') };
 			query    = cnv(query);
 			var itr  = self.searcher.search(query);
-			var max  = 100;
+			var max  = 1000;
 			var res  = [];
-			for (var i = 0, item = null; i < 30 && (item = itr.next()); i++) {
+			for (var i = 0, item = null; i < max && (item = itr.next()); i++) {
 				res.push(item);
 			}
 
@@ -485,7 +485,7 @@
 					return a.score - b.score
 				});
 
-			self.setCandinate(res);
+			self.setCandinate(res.slice(0, 30));
 		},
 
 		notify : function (msg, opts) {
@@ -799,29 +799,13 @@
 
 	Chemr.DomainFunctions["nodejs.org"] = {
 		indexer : function (page, document) {
-			if (!page) return this.pushPage('http://nodejs.org/api.html');
-			var headers = document.querySelectorAll('h2, h3');
-			for (var i = 0, len = headers.length; i < len; i++) {
-				var header = headers[i];
-				if (!header.id) continue;
-				var name = $X('.', header, String).match(/.+/)[0];
-				var url = 'javascript:' + encodeURIComponent(uneval(function (id) {
-					var $target = $('#' + id);
-					$target = $target.length && $target || $('[name=' + id + ']');
-					if ($target.length) {
-						var targetOffset = $('#man').scrollTop() + $target.offset().top - 45;
-						
-						$('#man').animate({
-							scrollTop: targetOffset
-						}, 200);
-
-						return false;
-					}
-					return false;
-				}) + '(' + uneval(header.id) + ');void(0)');
-				this.pushIndex(name + "\t" + url);
+			if (!page) return this.pushPage('http://nodejs.org/docs/v0.3.2/api/all.html');
+			var toc = document.getElementById('toc');
+			var links = toc.getElementsByTagName('a');
+			for (var i = 0, it; it = links[i]; i++) {
+				var name = $X('.', it, String);
+				this.pushIndex(name + "\t" + it.href);
 			}
-
 			return null;
 		}
 	};
@@ -899,11 +883,16 @@
 	Chemr.DomainFunctions["developer.appcelerator.com/apidoc/mobile/"] = {
 		indexer : function (page, document) {
 			var self = this;
-			return http.get('https://developer.appcelerator.com/apidoc/mobile/1.4/api.json').next(function (req) {
+			return http.get('http://developer.appcelerator.com/apidoc/mobile/1.4/api.json').next(function (req) {
 				var data = eval('(' + req.responseText + ')');
 				for (var key in data) if (data.hasOwnProperty(key)) {
 					var val = data[key];
-					self.pushIndex(key + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + key + '-module');
+					// self.pushIndex(key + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + key + '-module');
+
+					for (var i = 0, it; it = val.objects[i]; i++) {
+						if (it.filename == '"Titanium.App.guid-property"') console.log(it);
+						self.pushIndex(key + "." + it.name + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
+					}
 					for (var i = 0, it; it = val.methods[i]; i++) {
 						self.pushIndex(key + "#" + it.name + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
 					}
@@ -911,7 +900,7 @@
 						self.pushIndex(key + "#" + it.name + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
 					}
 					for (var i = 0, it; it = val.events[i]; i++) {
-						self.pushIndex(key + "#" + it.name +  "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
+						self.pushIndex(key + "/" + it.name +  "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
 					}
 				}
 			});
@@ -948,10 +937,18 @@
 		});
 
 		GM_registerMenuCommand('List supported sites', function () {
-			GM_openInTab('https://github.com/cho45/chemr-js');
+			window.open('https://github.com/cho45/chemr-js');
 		});
 	}
-	
+
+	for (var key in Chemr.DomainFunctions) if (Chemr.DomainFunctions.hasOwnProperty(key)) (function () {
+		var top = 'http://' + key;
+		var nam = Chemr.DomainFunctions[key].name || key;
+
+		GM_registerMenuCommand(nam, function () {
+			window.open(top);
+		});
+	})();
 }
 
 function escapeHTML (t) {
