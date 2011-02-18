@@ -27,14 +27,20 @@ cp_r FIREFOX, CHEMR
 info = CHEMR + "Contents/Info.plist"
 body = info.read
 info.open("w") do |f|
-	f.puts body.gsub(%r|<string>firefox-bin</string>|, '<string>chemr</string>')
+	f.puts body.
+		gsub(%r|<string>firefox-bin</string>|, '<string>chemr</string>').
+		gsub(%r|<string>MOZB</string>|, '<string>CHMR</string>').
+		gsub(%r|<string>org.mozilla.firefox</string>|, '<string>net.lowreal.chemr</string>').
+		gsub(%r|Firefox|, 'Chemr').
+		gsub(%r|<key>CFBundleURLTypes</key>\n\t<array>[\s\S]*\t</array>|, '').
+		gsub(%r|<key>CFBundleDocumentTypes</key>\n\t<array>[\s\S]*\t</array>|, '')
 end
 
 bin = CHEMR + "Contents/MacOS/chemr"
 bin.open("w") do |f|
 	f.puts <<-EOS.gsub(/^\s*/, '')
 		#!/bin/sh
-		/Applications/Chemr.app/Contents/MacOS/firefox-bin -P chemr -no-remote
+		/Applications/Chemr.app/Contents/MacOS/firefox-bin -no-remote -P chemr
 	EOS
 end
 bin.chmod(0777)
