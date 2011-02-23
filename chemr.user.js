@@ -327,6 +327,16 @@
 			document.title = e.title;
 		},
 
+		progress : function (message) {
+			if (message) {
+				this.html.loading.style.display = "inline-block";
+				this.html.input.placeholder = message;
+			} else {
+				this.html.loading.style.display = "none";
+				this.html.input.placeholder = "Input";
+			}
+		},
+
 		keypress : function (e) {
 			var self = this;
 			var key = keyString(e);
@@ -409,8 +419,10 @@
 				Chemr.log('Search index is not found in localStorage. creating...');
 				return next(function () {
 					var indexer = new Chemr.Indexer(self.functions);
+					self.progress("Creating index....");
 					return indexer.index().next(function (data) {
 						localStorage.setItem('refindex', data);
+						self.progress(null);
 						self.searcher = new Chemr.Searcher.Dat(data);
 					});
 				});
@@ -928,7 +940,7 @@
 		});
 	} else {
 		try {
-			new Chemr(location);
+			Chemr.instance = new Chemr(location);
 		} catch (e) { alert(e) }
 
 		GM_registerMenuCommand('Reindex', function () {
