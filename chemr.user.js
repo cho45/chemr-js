@@ -13,6 +13,7 @@
 // @include     https://developer.mozilla.org/*
 // @include     http://dev.mysql.com/doc/*
 // @include     http://template-toolkit.org/*
+// @include     http://docs.python.org/*
 // @include     http://developer.appcelerator.com/apidoc/mobile/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     https://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
@@ -527,6 +528,7 @@
 			this.functions   = functions;
 			this.crawlTarget = [];
 			this.indexArray  = [];
+			this.uniqMap     = {};
 		},
 
 		index : function () {
@@ -551,7 +553,10 @@
 		},
 
 		pushIndex : function (index) {
-			this.indexArray.push(index);
+			if (!this.uniqMap[index]) {
+				this.indexArray.push(index);
+				this.uniqMap[index] = true;
+			}
 		},
 
 		pushPage : function (url) {
@@ -640,6 +645,9 @@
 					index += RegExp.$1 + "\t\n";
 				}
 				return index;
+			}).
+			error(function (e) {
+				alert(e);
 			});
 		},
 
@@ -918,10 +926,39 @@
 			});
 		}
 	};
+
+	Chemr.DomainFunctions["docs.python.org"] = {
+		indexer : function (page, document) {
+			if (!page)  return this.pushPage('http://docs.python.org/genindex-all.html');
+			var lists = document.querySelectorAll('.indextable td > dl > *');
+			var curr;
+			for (var i = 0, it; it = lists[i]; i++) {
+				if (it.nodeName == 'DT') {
+					var a = $X('./a', it)[0];
+					var name = $X('.', it, String);
+					if (!a) {
+						curr = name;
+						continue;
+					}
+					var url  = a.href;
+					this.pushIndex(name + "\t" + url);
+					curr = name.replace(/\s*\([^)]+\)$/, '');
+				} else
+				if (it.nodeName == 'DD') {
+					var dd = $X('.//a', it);
+					for (var j = 0, a; a = dd[j]; j++) {
+						var name = $X('.', a, String);
+						var url  = a.href;
+						this.pushIndex(curr + " " + name + "\t" + url);
+					}
+				}
+			}
+			return null;
+		}
+	};
+//
 // TODO
 //	Chemr.DomainFunctions["practical-scheme.net"] = {
-//	};
-//	Chemr.DomainFunctions["docs.python.org"] = {
 //	};
 //	Chemr.DomainFunctions["www.w3.org/TR/css3-roadmap/"] = {
 //	};
