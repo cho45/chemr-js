@@ -18,8 +18,8 @@ def sh(*args)
 	system(*args)
 end
 
-# FIREFOX = "/Applications/Firefox.app".expand
-FIREFOX = "/Applications/Minefield.app".expand
+FIREFOX = "/Applications/Firefox.app".expand
+# FIREFOX = "/Applications/Minefield.app".expand
 CHEMR   = "/Applications/Chemr.app".expand
 
 CHEMR.rmtree if CHEMR.exist?

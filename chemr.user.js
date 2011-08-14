@@ -17,8 +17,8 @@
 // @include     http://developer.appcelerator.com/apidoc/mobile/*
 // @require     http://jqueryjs.googlecode.com/files/jquery-1.3.min.js
 // @require     https://github.com/cho45/jsdeferred/raw/master/jsdeferred.userscript.js
-// @require     https://gist.github.com/3239.txt#createElementFromString
-// @require     https://gist.github.com/3238.txt#$X
+// @require     https://raw.github.com/gist/3239/60d2584ef263909bc3571b29a73aa720d7891b68/puredomconstructor.js#createElementFromString
+// @require     https://raw.github.com/gist/3238/bc5f6bd5fb64b1baf6aa17423735a1816f36b358/dollarX.js#$X
 // ==/UserScript==
 
 (function () { with (D()) {
