@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name        Chemr
 // @namespace   http://lowreal.net/
+// @grant       none
 // @include     https://github.com/cho45/chemr-js/blob/master/README.markdown
 // @include     http://search.cpan.org/*
 // @include     http://www2u.biglobe.ne.jp/*
@@ -21,7 +22,7 @@
 // @require     https://raw.github.com/gist/3238/bc5f6bd5fb64b1baf6aa17423735a1816f36b358/dollarX.js#$X
 // ==/UserScript==
 
-(function () { with (D()) {
+(function () { with (D()) { // no warnings
 
 	if (window != window.parent) {
 		window.parent.postMessage(JSON.stringify({
@@ -64,7 +65,7 @@
 		req.send(opts.data || null);
 		d.xhr = req;
 		return d;
-	}
+	};
 	http.get   = function (url)       { return http({method:"get",  url:url}) };
 	http.post  = function (url, data) { return http({method:"post", url:url, data:data, headers:{"Content-Type":"application/x-www-form-urlencoded"}}) };
 
@@ -73,7 +74,7 @@
 		if (e.ctrlKey) ret += 'C-';
 		if (e.altKey)  ret += 'M-';
 		if (e.metaKey && !e.ctrlKey) ret += 'W-';
-		if (e.which == 0) {
+		if (e.which === 0) {
 			ret += arguments.callee.table1[e.keyCode];
 		} else {
 			ret += arguments.callee.table2[e.which] || String.fromCharCode(e.which);
@@ -137,105 +138,98 @@
 		},
 
 		createContainer : function () {
-			this.html = createElementFromString(<><![CDATA[
-				<html>
-					<head>
-						<title></title>
-						<style type="text/css">
-							html, body {
-								padding: 0;
-								margin: 0;
-								width: 100%;
-								height: 100%;
-								overflow: hidden;
-							}
-
-							iframe {
-								border: none;
-								width: 100%;
-								height: 100%;
-							}
-
-							#chemr-container {
-							}
-							
-							#chemr-container .search {
-								position: fixed;
-								z-index: 10000;
-								top: 10px;
-								right: 50px;
-								width: 300px;
-								margin: 0;
-								padding: 0;
-							}
-							
-							#chemr-container .search .input {
-								font-size: 13px !important;
-								width: 100%;
-								margin: 0;
-								padding: 1px;
-								letter-spacing: 0;
-								box-sizing: border-box;
-								-moz-box-sizing: border-box;
-							}
-							
-							#chemr-container .search .select {
-								letter-spacing: 0;
-								width: 100%;
-								box-sizing: content-box;
-								font-size: 13px !important;
-							}
-
-							#chemr-container .search .loading {
-								display: none;
-								position: absolute;
-								top: 5px;
-								right: 5px;
-							}
-
-							#chemr-container .search .select option {
-								padding: 3px;
-							}
-							#chemr-container .search .select option:nth-child(odd) {
-								background: #e9e9e9;
-							}
-
-							#chemr-container .search .select option .info {
-								padding: 0 1px;
-								font-size: 80%;
-								color: #666;
-							}
-
-							#chemr-container .notifications {
-								position: fixed;
-								bottom: 0;
-								left: 0;
-								font-family: "Trebuchet MS", "Verdana", "Helvetica", "Arial" ,sans-serif;
-								font-size: 12px;
-								z-index: 10000;
-								width: 50%;
-								padding: 0.5em 1em;
-								background: #000;
-								color: #fff;
-								letter-spacing: 0;
-								opacity: 0.8;
-							}
-						</style>
-					</head>
-					<body>
-						<iframe class="iframe"></iframe>
-						<div id="chemr-container" class="container">
-							<div class="search">
-								<input type="text" name="input" class="input" placeholder="Input" autocomplete="off"/>
-								<select class="select" size="30"></select>
-								<img class="loading" src="" alt=""/>
-							</div>
-							<div class="notifications"></div>
-						</div>
-					</body>
-				</html>
-			]]></>
-			.toString().replace(/$\s+/gm, ''));
+			this.html = createElementFromString('' +
+				'<html>' +
+					'<head>' +
+						'<title></title>' +
+						'<style type="text/css">' +
+							'html, body {' +
+								'padding: 0;' +
+								'margin: 0;' +
+								'width: 100%;' +
+								'height: 100%;' +
+								'overflow: hidden;' +
+							'}' +
+							'iframe {' +
+								'border: none;' +
+								'width: 100%;' +
+								'height: 100%;' +
+							'}' +
+							'#chemr-container {' +
+							'}' +
+							'' +
+							'#chemr-container .search {' +
+								'position: fixed;' +
+								'z-index: 10000;' +
+								'top: 10px;' +
+								'right: 50px;' +
+								'width: 300px;' +
+								'margin: 0;' +
+								'padding: 0;' +
+							'}' +
+							'' +
+							'#chemr-container .search .input {' +
+								'font-size: 13px !important;' +
+								'width: 100%;' +
+								'margin: 0;' +
+								'padding: 1px;' +
+								'letter-spacing: 0;' +
+								'box-sizing: border-box;' +
+								'-moz-box-sizing: border-box;' +
+							'}' +
+							'' +
+							'#chemr-container .search .select {' +
+								'letter-spacing: 0;' +
+								'width: 100%;' +
+								'box-sizing: content-box;' +
+								'font-size: 13px !important;' +
+							'}' +
+							'#chemr-container .search .loading {' +
+								'display: none;' +
+								'position: absolute;' +
+								'top: 5px;' +
+								'right: 5px;' +
+							'}' +
+							'#chemr-container .search .select option {' +
+								'padding: 3px;' +
+							'}' +
+							'#chemr-container .search .select option:nth-child(odd) {' +
+								'background: #e9e9e9;' +
+							'}' +
+							'#chemr-container .search .select option .info {' +
+								'padding: 0 1px;' +
+								'font-size: 80%;' +
+								'color: #666;' +
+							'}' +
+							'#chemr-container .notifications {' +
+								'position: fixed;' +
+								'bottom: 0;' +
+								'left: 0;' +
+								'font-family: "Trebuchet MS", "Verdana", "Helvetica", "Arial" ,sans-serif;' +
+								'font-size: 12px;' +
+								'z-index: 10000;' +
+								'width: 50%;' +
+								'padding: 0.5em 1em;' +
+								'background: #000;' +
+								'color: #fff;' +
+								'letter-spacing: 0;' +
+								'opacity: 0.8;' +
+							'}' +
+						'</style>' +
+					'</head>' +
+					'<body>' +
+						'<iframe class="iframe"></iframe>' +
+						'<div id="chemr-container" class="container">' +
+							'<div class="search">' +
+								'<input type="text" name="input" class="input" placeholder="Input" autocomplete="off"/>' +
+								'<select class="select" size="30"></select>' +
+								'<img class="loading" src="" alt=""/>' +
+							'</div>' +
+							'<div class="notifications"></div>' +
+						'</div>' +
+					'</body>' +
+				'</html>' +
+				''.toString().replace(/$\s+/gm, ''));
 
 			this.html.iframe.src  = location.href + '?';
 			this.html.loading.src = LOADING_IMG;
@@ -495,7 +489,7 @@
 					return i;
 				}).
 				sort(function (a, b) {
-					return a.score - b.score
+					return a.score - b.score;
 				});
 
 			self.setCandinate(res.slice(0, 30));
@@ -594,7 +588,7 @@
 	};
 
 	Chemr.Searcher = {};
-	Chemr.Searcher.Dat = function () { this.init.apply(this, arguments) }
+	Chemr.Searcher.Dat = function () { this.init.apply(this, arguments) };
 	Chemr.Searcher.Dat.prototype = {
 		init : function (dat) {
 			if (!dat) throw "dat is empty";
@@ -739,42 +733,42 @@
 
 		load : function (document) {
 			return; // XXX
-			document.body.innerHTML = document.body.innerHTML;
-			var style = document.createElement('style');
-			style.type = "text/css";
-			style.appendChild(document.createTextNode(<><![CDATA[
-				#header {
-					height: auto;
-					border: none;
-					min-width: auto;
-				}
-
-				#headerLeft,
-				#headerLinks,
-				#search,
-				#side-nav {
-					display: none;
-				}
-
-				#body-content {
-					position: static;
-				}
-
-				#doc-content {
-					overflow: show;
-					width: auto;
-					margin: 0;
-				}
-
-				html {
-					overflow: auto;
-				}
-
-				body {
-					overflow: show;
-				}
-			]]></>));
-			document.body.appendChild(style);
+//			document.body.innerHTML = document.body.innerHTML;
+//			var style = document.createElement('style');
+//			style.type = "text/css";
+//			style.appendChild(document.createTextNode(<><![CDATA[
+//				#header {
+//					height: auto;
+//					border: none;
+//					min-width: auto;
+//				}
+//
+//				#headerLeft,
+//				#headerLinks,
+//				#search,
+//				#side-nav {
+//					display: none;
+//				}
+//
+//				#body-content {
+//					position: static;
+//				}
+//
+//				#doc-content {
+//					overflow: show;
+//					width: auto;
+//					margin: 0;
+//				}
+//
+//				html {
+//					overflow: auto;
+//				}
+//
+//				body {
+//					overflow: show;
+//				}
+//			]]></>));
+//			document.body.appendChild(style);
 		}
 	};
 
@@ -785,7 +779,7 @@
 				var indexes = document.querySelectorAll('table.vanilla table tr.indexrow a[href^="doc-index"]');
 				for (var i = 0, len = indexes.length; i < len; i++) {
 					if (indexes[i].href == 'http://www.haskell.org/ghc/docs/6.12.2/html/libraries/doc-index-A.html') continue;
-					this.pushPage(indexes[i].href)
+					this.pushPage(indexes[i].href);
 				}
 			}
 
@@ -822,7 +816,7 @@
 			if (!page) return this.pushPage('http://nodejs.org/docs/v0.3.2/api/all.html');
 			var toc = document.getElementById('toc');
 			var links = toc.getElementsByTagName('a');
-			for (var i = 0, it; it = links[i]; i++) {
+			for (var i = 0, it; (it = links[i]); i++) {
 				var name = $X('.', it, String);
 				this.pushIndex(name + "\t" + it.href);
 			}
@@ -836,7 +830,7 @@
 			var anchors = document.querySelectorAll('a[pageid][rel="internal"]');
 			for (var i = 0, len = anchors.length; i < len; i++) {
 				var a = anchors[i];
-				var name = a.title;;
+				var name = a.title;
 				var url  = a.href;
 				this.pushIndex(name + "\t" + url);
 			}
@@ -889,10 +883,10 @@
 				this.pushPage('http://template-toolkit.org/docs/manual/Variables.html');
 				this.pushPage('http://template-toolkit.org/docs/manual/Plugins.html');
 				return;
-			};
+			}
 
 			var lis = document.querySelectorAll('ul.toc a');
-			for (var i = 0, a; a = lis[i]; i++) {
+			for (var i = 0, a; (a = lis[i]); i++) {
 				var name = $X('.', a, String);
 				var url  = a.href;
 				this.pushIndex(name + "\t" + url);
@@ -909,17 +903,17 @@
 					var val = data[key];
 					// self.pushIndex(key + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + key + '-module');
 
-					for (var i = 0, it; it = val.objects[i]; i++) {
+					for (var i = 0, it; (it = val.objects[i]); i++) {
 						if (it.filename == '"Titanium.App.guid-property"') console.log(it);
 						self.pushIndex(key + "." + it.name + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
 					}
-					for (var i = 0, it; it = val.methods[i]; i++) {
+					for (var i = 0, it; (it = val.methods[i]); i++) {
 						self.pushIndex(key + "#" + it.name + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
 					}
-					for (var i = 0, it; it = val.properties[i]; i++) {
+					for (var i = 0, it; (it = val.properties[i]); i++) {
 						self.pushIndex(key + "#" + it.name + "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
 					}
-					for (var i = 0, it; it = val.events[i]; i++) {
+					for (var i = 0, it; (it = val.events[i]); i++) {
 						self.pushIndex(key + "/" + it.name +  "\t" + "https://developer.appcelerator.com/apidoc/mobile/latest/" + it.filename);
 					}
 				}
@@ -931,24 +925,24 @@
 		indexer : function (page, document) {
 			if (!page)  return this.pushPage('http://docs.python.org/genindex-all.html');
 			var lists = document.querySelectorAll('.indextable td > dl > *');
-			var curr;
-			for (var i = 0, it; it = lists[i]; i++) {
+			var curr, a, name, url;
+			for (var i = 0, it; (it = lists[i]); i++) {
 				if (it.nodeName == 'DT') {
-					var a = $X('./a', it)[0];
-					var name = $X('.', it, String);
+					a = $X('./a', it)[0];
+					name = $X('.', it, String);
 					if (!a) {
 						curr = name;
 						continue;
 					}
-					var url  = a.href;
+					url  = a.href;
 					this.pushIndex(name + "\t" + url);
 					curr = name.replace(/\s*\([^)]+\)$/, '');
 				} else
 				if (it.nodeName == 'DD') {
 					var dd = $X('.//a', it);
-					for (var j = 0, a; a = dd[j]; j++) {
-						var name = $X('.', a, String);
-						var url  = a.href;
+					for (var j = 0; (a = dd[j]); j++) {
+						name = $X('.', a, String);
+						url  = a.href;
 						this.pushIndex(curr + " " + name + "\t" + url);
 					}
 				}
