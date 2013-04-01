@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chemr
 // @namespace   http://lowreal.net/
-// @grant       none
+// @grant       GM_xmlhttpRequest
 // @include     https://github.com/cho45/chemr-js/blob/master/README.markdown
 // @include     http://search.cpan.org/*
 // @include     http://www2u.biglobe.ne.jp/*
@@ -628,6 +628,7 @@
 			Chemr.log('fetch http://www.cpan.org/modules/02packages.details.txt');
 			return xhttp.get('http://www.cpan.org/modules/02packages.details.txt').
 			next(function (req) {
+				if (!req.responseText) throw "responseText is empty";
 				Chemr.log('loaded, creating index...');
 				return req;
 			}).
