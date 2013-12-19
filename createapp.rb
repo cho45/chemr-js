@@ -96,5 +96,7 @@ __END__
 		<key>x86_64</key>
 		<string>10.6.0</string>
 	</dict>
+	<key>NSHighResolutionCapable</key>
+	<string>True</string>
 </dict>
 </plist>
